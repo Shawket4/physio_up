@@ -30,7 +30,7 @@ class _MultiSelectAppointmentScreenState extends State<MultiSelectAppointmentScr
 
   void loadBlocks() {
       timeBlocks.clear();
-    for (int hour = 11; hour <= 22; hour++) {
+    for (int hour = 11; hour <= 23; hour++) {
       timeBlocks.add(TimeBlock(
         id: 0,
         date:  intl.DateFormat("yyyy/MM/dd & h:mm a").format((DateTime(selectedDate.year, selectedDate.month, selectedDate.day, hour, 0))),
