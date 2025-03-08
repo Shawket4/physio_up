@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -144,10 +146,10 @@ class AppDrawer extends StatelessWidget {
   // Check if dates were selected
   if (selectedDates != null && selectedDates['dateFrom'] != null && selectedDates['dateTo'] != null) {
     final directory = await getApplicationDocumentsDirectory();
-    final filePath = '${directory.path}/Sales.xlsx';
+    final filePath = '${directory.path}/Sales${DateTime.now()}.xlsx';
 
     // Send the selected dates to the API
-    downloadDataPost(
+    await downloadDataPost(
       "$ServerIP/api/protected/ExportSalesTable",
       filePath,
       {
@@ -163,6 +165,15 @@ class AppDrawer extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to open file: ${result.message}')),
       );
+    } else {
+       final file = File(filePath);
+      if (await file.exists()) {
+        await Future.delayed(Duration(seconds: 5));
+        await file.delete();
+
+      } else {
+
+      }
     }
   }
 },
