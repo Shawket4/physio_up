@@ -64,11 +64,10 @@ class _PatientPackageAppointmentsState extends State<PatientPackageAppointments>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text("Date: ${appointment.dateTime}"),
-                                    Text("Price: \$${appointment.price.toStringAsFixed(2)}"),
                                     Text("Status: ${appointment.isCompleted ? "Completed" : "Pending"}"),
                                   ],
                                 ),
-                                trailing: appointment.isPaid
+                                trailing: appointment.isCompleted
                                     ? Icon(Icons.check_circle, color: Colors.green)
                                     : Icon(Icons.pending, color: Colors.orange),
                               ),
