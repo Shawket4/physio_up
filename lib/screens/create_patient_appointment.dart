@@ -68,7 +68,7 @@ class MakeAppointmentScreenState extends State<MakeAppointmentScreen> {
   }
 
   void loadBlocks() {
-    for (int hour = 11; hour <= 22; hour++) {
+    for (int hour = 11; hour <= 23; hour++) {
       for (int minute = 0; minute < 60; minute += 60) {
         timeBlocks.add(TimeBlock(
           dateTime: DateTime(currentDate.year, currentDate.month, currentDate.day, hour, minute),
