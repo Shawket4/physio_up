@@ -28,7 +28,8 @@ jobs:
         run: flutter build windows  # Build the Windows app
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2  # Upload the build output as an artifact
+        uses: actions/upload-artifact@v3
+
         with:
           name: windows-build
           path: build/windows/runner/Release/  # Path to the build output
