@@ -1,0 +1,34 @@
+name: Build Windows
+
+on:
+  push:
+    branches:
+      - main  # Trigger the workflow on pushes to the main branch
+  pull_request:
+    branches:
+      - main  # Trigger the workflow on pull requests to the main branch
+
+jobs:
+  build:
+    runs-on: windows-latest  # Use a Windows runner
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2  # Check out the repository
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2  # Set up Flutter
+        with:
+          channel: stable  # Use the stable Flutter channel
+
+      - name: Install dependencies
+        run: flutter pub get  # Install Flutter dependencies
+
+      - name: Build Windows
+        run: flutter build windows  # Build the Windows app
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2  # Upload the build output as an artifact
+        with:
+          name: windows-build
+          path: build/windows/runner/Release/  # Path to the build output
