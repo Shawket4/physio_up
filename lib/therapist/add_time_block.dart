@@ -5,7 +5,7 @@ import 'package:phsyio_up/models/therapist.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/secretary/router.dart';
-import 'package:phsyio_up/therapist/therapist_schedule.dart';
+
 
 class MultiSelectAppointmentScreen extends StatefulWidget {
   final Therapist therapist;
