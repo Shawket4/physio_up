@@ -85,6 +85,29 @@ class _PatientPackageHistoryScreenState extends State<PatientPackageHistoryScree
                                       PopupMenuButton<String>(
             icon: Icon(Icons.pending, color: Colors.orange),
             onSelected: (String value) async {
+              if (value == "delete") {
+                try {
+
+                await postData("$ServerIP/api/protected/RemovePackage", {
+                  "id": package.id,
+                });
+                   ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Marked Successfully"),
+                            ),
+                          );
+                        setState(() {
+                          
+                        });
+                } catch (e) {
+ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(e.toString())),
+                          );
+                
+                }
+                 
+              }
+              
               if (value == "set_referral") {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => SetReferralScreen(package: package,)));
               } else if (value == "mark_as_paid") {
@@ -147,6 +170,10 @@ ScaffoldMessenger.of(context).showSnackBar(
                 PopupMenuItem<String>(
                   value: 'mark_as_paid',
                   child: Text('Mark As Paid'),
+                ),
+                 PopupMenuItem<String>(
+                  value: 'delete',
+                  child: Text('Delete Package'),
                 ),
               ];
             },

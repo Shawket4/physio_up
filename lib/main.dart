@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 
 import 'package:dio/dio.dart';
 import 'package:material_color_generator/material_color_generator.dart';
+import 'package:phsyio_up/screens/whatsappqrcode.dart';
 import 'package:phsyio_up/secretary/appointment_requests.dart';
 import 'package:phsyio_up/screens/login_screen.dart';
 import 'package:phsyio_up/secretary/router.dart';
@@ -34,8 +35,8 @@ extension HexColor on Color {
 }
 
 // const String ServerIP = "https://dentex.app";
-const String ServerIP = "https://physioup.ddns.net:3005";
-// const String ServerIP = "http://172.20.10.2:3005";
+// const String ServerIP = "https://physioup.ddns.net:3005";
+const String ServerIP = "http://localhost:3005";
 
 
 
@@ -46,6 +47,8 @@ void main() async {
 }
 
 
+dynamic whatsappLogin;
+dynamic qrCodeBytes;
 
 final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 late String jwt;
@@ -84,6 +87,12 @@ Future<String> get _getJwt async {
     userInfo.ID = response["data"]["ID"];
     userInfo.permission = response["data"]["permission"];
     userInfo.clinicName = response["data"]["clinic_name"];
+    whatsappLogin = await getData("$ServerIP/api/protected/CheckWhatsAppLogin");
+    print(whatsappLogin.toString());
+    if (whatsappLogin["message"] != "Logged In") {
+      print("object");
+      qrCodeBytes = await getDataAsBytes("$ServerIP/api/protected/GetWhatsAppQRCode");
+    }
   } catch (e) {
     print(e);
     Logout;
@@ -188,9 +197,12 @@ class _MainWidgetState extends State<MainWidget> {
                 );
               } else if (snapshot.data != "Offline") {
                 if (jwt != "") {
-                  return RouterWidget();
+                  if (whatsappLogin["message"] == "Logged In") {
+                    return RouterWidget();
+                  }
+                   return WhatsAppQRCode(qrCodeBytes: qrCodeBytes);
                 } else {
-                  return const LoginPage();
+                    return const LoginPage();
                 }
               } else {
                 return const RouterWidget();

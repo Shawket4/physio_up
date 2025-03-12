@@ -6,7 +6,6 @@ import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/secretary/router.dart';
 
-
 class MultiSelectAppointmentScreen extends StatefulWidget {
   final Therapist therapist;
   
@@ -29,11 +28,11 @@ class _MultiSelectAppointmentScreenState extends State<MultiSelectAppointmentScr
   }
 
   void loadBlocks() {
-      timeBlocks.clear();
+    timeBlocks.clear();
     for (int hour = 11; hour <= 23; hour++) {
       timeBlocks.add(TimeBlock(
         id: 0,
-        date:  intl.DateFormat("yyyy/MM/dd & h:mm a").format((DateTime(selectedDate.year, selectedDate.month, selectedDate.day, hour, 0))),
+        date: intl.DateFormat("yyyy/MM/dd & h:mm a").format((DateTime(selectedDate.year, selectedDate.month, selectedDate.day, hour, 0))),
         isAvailable: true,
       ));
     }
@@ -62,25 +61,66 @@ class _MultiSelectAppointmentScreenState extends State<MultiSelectAppointmentScr
   }
 
   Future<void> submitAppointments() async {
-    if (selectedTimeBlocks.isEmpty) return;
+    if (selectedTimeBlocks.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please select at least one time block"),
+          backgroundColor: Colors.amber,
+        ),
+      );
+      return;
+    }
 
     List<String> formattedTimes = selectedTimeBlocks.map(
       (dateTime) => intl.DateFormat("yyyy/MM/dd & h:mm a").format(dateTime),
     ).toList();
-    print(formattedTimes);
-    Map<String, dynamic> data = {
-      "date_times": formattedTimes,
-    };
+    
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
+    
+    try {
+      Map<String, dynamic> data = {
+        "date_times": formattedTimes,
+      };
 
-    var response = await postData("$ServerIP/api/protected/AddTherapistTimeBlocks", data);
-    if (response["message"] == "Requested Successfully") {
+      var response = await postData("$ServerIP/api/protected/AddTherapistTimeBlocks", data);
+      
+      // Close loading dialog
+      Navigator.pop(context);
+      
+      if (response["message"] == "Requested Successfully") {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Time blocks successfully saved!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.push(context, MaterialPageRoute(builder: (_) => RouterWidget()));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Failed to save time blocks."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog
+      Navigator.pop(context);
+      
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Appointments successfully booked!")),
-      );
-      Navigator.push(context, MaterialPageRoute(builder: (_) => RouterWidget()));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to book appointments.")),
+        SnackBar(
+          content: Text("Error: ${e.toString()}"),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -88,86 +128,315 @@ class _MultiSelectAppointmentScreenState extends State<MultiSelectAppointmentScr
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Select Time Blocks")),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              "Available Time Blocks for ${widget.therapist.name}",
-              style: GoogleFonts.jost(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
+      backgroundColor: const Color(0xFFF2F5F9),
+      appBar: AppBar(
+        centerTitle: true,
+        backgroundColor: const Color(0xFF011627),
+        title: Text(
+          "Block Time Slots",
+          style: GoogleFonts.jost(
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
           ),
-          Row(
-                              children: [
-                                Text(
-                                  intl.DateFormat("yyyy/MM/dd").format(selectedDate),
-                                  style: GoogleFonts.jost(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: () async {
-                                    DateTime? returnedDate = await showDatePicker(
-                                      context: context,
-                                      initialDate: selectedDate,
-                                      firstDate: DateTime.now().subtract(const Duration(days: 365 * 30)),
-                                      lastDate: DateTime.now().add(const Duration(days: 365 * 30)),
-                                    );
-                                    if (returnedDate != null) {
-                                      setState(() {
-                                        selectedDate = returnedDate;
-                                        loadBlocks();
-    markBookedBlocks();
-                                      });
-                                    }
-                                  },
-                                  icon: const Icon(Icons.calendar_month_rounded),
-                                ),
-                              ],
-                            ),
-          Expanded(
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                childAspectRatio: 2,
-                mainAxisSpacing: 10,
+        ),
+        elevation: 0,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Therapist info card
+            Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              itemCount: timeBlocks.length,
-              itemBuilder: (context, index) {
-                var timeBlock = timeBlocks[index];
-                return GestureDetector(
-                  onTap: timeBlock.isAvailable ? () => toggleSelection(intl.DateFormat("yyyy/MM/dd & h:mm a").parse(timeBlock.date)) : null,
-                  child: Card(
-                    color: selectedTimeBlocks.contains(intl.DateFormat("yyyy/MM/dd & h:mm a").parse(timeBlock.date))
-                        ? Colors.green
-                        : (timeBlock.isAvailable ? Colors.white : Colors.grey),
-                    elevation: 2,
-                    child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: const Color(0xFF011627),
                       child: Text(
-                        intl.DateFormat("h:mm a").format(intl.DateFormat("yyyy/MM/dd & h:mm a").parse(timeBlock.date)),
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: timeBlock.isAvailable! ? Colors.black : Colors.white,
-                          fontWeight: FontWeight.w600,
+                        widget.therapist.name.substring(0, 1),
+                        style: GoogleFonts.jost(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
                     ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.therapist.name,
+                            style: GoogleFonts.jost(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF011627),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Select time blocks to mark as unavailable",
+                            style: GoogleFonts.jost(
+                              fontSize: 14,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Date selection card
+            Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Select Date",
+                      style: GoogleFonts.jost(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    InkWell(
+                      onTap: () async {
+                        DateTime? returnedDate = await showDatePicker(
+                          context: context,
+                          initialDate: selectedDate,
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime.now().add(const Duration(days: 90)),
+                          builder: (context, child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: ColorScheme.light(
+                                  primary: Theme.of(context).primaryColor,
+                                ),
+                              ),
+                              child: child!,
+                            );
+                          },
+                        );
+                        if (returnedDate != null) {
+                          setState(() {
+                            selectedDate = returnedDate;
+                            loadBlocks();
+                            markBookedBlocks();
+                          });
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              intl.DateFormat("EEEE, MMMM d, yyyy").format(selectedDate),
+                              style: GoogleFonts.jost(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const Icon(Icons.calendar_month_rounded, color: Color(0xFF011627)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Time slots section header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Available Time Slots",
+                  style: GoogleFonts.jost(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColor,
                   ),
-                );
-              },
+                ),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Text(
+                    "${selectedTimeBlocks.length} selected",
+                    style: GoogleFonts.jost(
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-          ElevatedButton(
-            onPressed: submitAppointments,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text("Block Selected", style: GoogleFonts.jost(fontSize: 18)),
+            
+            const SizedBox(height: 8),
+            
+            // Legend
+            Row(
+              children: [
+                _buildLegendItem(Colors.white, "Available"),
+                const SizedBox(width: 16),
+                _buildLegendItem(Colors.grey, "Already Booked"),
+                const SizedBox(width: 16),
+                _buildLegendItem(Colors.green, "Selected"),
+              ],
             ),
-          ),
-        ],
+            
+            const SizedBox(height: 16),
+            
+            // Time slots grid
+            Expanded(
+              child: Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: GridView.builder(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      childAspectRatio: 1.8,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                    ),
+                    itemCount: timeBlocks.length,
+                    itemBuilder: (context, index) {
+                      var timeBlock = timeBlocks[index];
+                      var dateTime = intl.DateFormat("yyyy/MM/dd & h:mm a").parse(timeBlock.date);
+                      bool isSelected = selectedTimeBlocks.contains(dateTime);
+                      bool isAvailable = timeBlock.isAvailable!;
+                      
+                      return GestureDetector(
+                        onTap: isAvailable ? () => toggleSelection(dateTime) : null,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? Colors.green
+                                : (isAvailable ? Colors.white : Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: Colors.green.withOpacity(0.3),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 3),
+                                    )
+                                  ]
+                                : null,
+                          ),
+                          child: Center(
+                            child: Text(
+                              intl.DateFormat("h:mm a").format(dateTime),
+                              style: GoogleFonts.jost(
+                                fontSize: 16,
+                                color: isSelected || !isAvailable
+                                    ? Colors.white
+                                    : const Color(0xFF011627),
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Submit button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: submitAppointments,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF011627),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 3,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.check_circle_outline, color: Colors.white),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Save Blocked Time Slots",
+                      style: GoogleFonts.jost(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+  
+  Widget _buildLegendItem(Color color, String label) {
+    return Row(
+      children: [
+        Container(
+          width: 16,
+          height: 16,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: Colors.grey.shade400),
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: GoogleFonts.jost(
+            fontSize: 12,
+            color: Colors.grey.shade700,
+          ),
+        ),
+      ],
     );
   }
 }

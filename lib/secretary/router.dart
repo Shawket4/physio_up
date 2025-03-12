@@ -19,180 +19,387 @@ class RouterWidget extends StatefulWidget {
   const RouterWidget({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _RouterWidgetState createState() => _RouterWidgetState();
+  State<RouterWidget> createState() => _RouterWidgetState();
 }
 
 class _RouterWidgetState extends State<RouterWidget> {
-  Widget _currentScreen = AppointmentRequestScreen(); // Default screen
+  int _selectedIndex = 0;
+  late List<NavigationItem> _navigationItems;
+  late Widget _currentScreen;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  
+  @override
+  void initState() {
+    super.initState();
+    _buildNavigationItems();
+    _currentScreen = _navigationItems[0].screen;
+  }
+  
+  void _buildNavigationItems() {
+    _navigationItems = [
+      NavigationItem(
+        title: 'Requests',
+        icon: Icons.home_rounded,
+        screen: AppointmentRequestScreen(),
+      ),
+      if (userInfo.permission == 2)
+        NavigationItem(
+          title: 'My Schedule',
+          icon: Icons.calendar_month_rounded,
+          screen: TherapistScheduleScreen(),
+        ),
+      NavigationItem(
+        title: 'Therapists',
+        icon: Icons.people_alt_rounded,
+        screen: TherapistListScreen(),
+      ),
+      NavigationItem(
+        title: 'Patients',
+        icon: Icons.person_rounded,
+        screen: PatientListScreen(),
+      ),
+      NavigationItem(
+        title: 'Referrals',
+        icon: Icons.swap_vertical_circle_rounded,
+        screen: ReferralListScreen(),
+      ),
+      NavigationItem(
+        title: 'Packages',
+        icon: Icons.medical_services_rounded,
+        screen: TreatmentListScreen(),
+      ),
+    ];
+  }
 
-  void _navigateTo(Widget screen) {
+  void _navigateToIndex(int index) {
     setState(() {
-      _currentScreen = screen;
+      _selectedIndex = index;
+      _currentScreen = _navigationItems[index].screen;
     });
-    Navigator.of(context).pop(); // Close the drawer after navigation
+    _scaffoldKey.currentState?.closeDrawer();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: _currentScreen,
-    );
-  }
-}
-
-// Custom Drawer Widget
-class AppDrawer extends StatelessWidget {
-  const AppDrawer({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final routerState = context.findAncestorStateOfType<_RouterWidgetState>();
-    return Drawer(
-      backgroundColor: Colors.white,
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          const SizedBox(
-                    height: 80,
-                  ),
-          Align(
-                    alignment: Alignment.center,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      width: 180,
-                      child: Image.asset(
-                        "assets/images/Logo_Dark.png",
-                      ),
-                    ),
-                  ),
-          const SizedBox(
-            height: 15,
-          ),
-                    userInfo.permission == 2 ?
-          ListTile(
-            leading: Icon(Icons.calendar_month, ),
-            title: Text("My Schedule", style: GoogleFonts.jost(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w700,
-
-                                      ),),
-            onTap: () {routerState?._navigateTo(TherapistScheduleScreen());}
-          ) : Container(),
-          ListTile(
-            leading: Icon(Icons.home),
-            title: Text("Requests", style: GoogleFonts.jost(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w700,
-
-                                      ),),
-            onTap: () => routerState?._navigateTo(AppointmentRequestScreen()),
-          ),
-          ListTile(
-            leading: Icon(Icons.person, ),
-            title: Text("Therapists", style: GoogleFonts.jost(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w700,
-
-                                      ),),
-            onTap: () {routerState?._navigateTo(TherapistListScreen());}
-          ),
-           ListTile(
-            leading: Icon(Icons.person, ),
-            title: Text("Patients", style: GoogleFonts.jost(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w700,
-
-                                      ),),
-            onTap: () {routerState?._navigateTo(PatientListScreen());}
-          ),
-
-        ListTile(
-            leading: Icon(Icons.swap_vertical_circle_sharp, ),
-            title: Text("Referrals", style: GoogleFonts.jost(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w700,
-
-                                      ),),
-            onTap: () {routerState?._navigateTo(ReferralListScreen());}
-          ),
-
-          ListTile(
-            leading: Icon(Icons.archive, ),
-            title: Text("Packages", style: GoogleFonts.jost(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w700,
-
-                                      ),),
-            onTap: () {routerState?._navigateTo(TreatmentListScreen());}
-          ),
-
-          ListTile(
-            leading: Icon(Icons.book, ),
-            title: Text("Export Sales", style: GoogleFonts.jost(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w700,
-
-                                      ),),
-            onTap: () async {
-  // Show the date range picker dialog
-  final selectedDates = await showDialog<Map<String, DateTime?>>(
-    context: context,
-    builder: (BuildContext context) {
-      return DateRangePickerDialog2();
-    },
-  );
-
-  // Check if dates were selected
-  if (selectedDates != null && selectedDates['dateFrom'] != null && selectedDates['dateTo'] != null) {
-    final directory = await getApplicationDocumentsDirectory();
-    final filePath = '${directory.path}/Sales${DateTime.now()}.xlsx';
-
-    // Send the selected dates to the API
-    await downloadDataPost(
-      "$ServerIP/api/protected/ExportSalesTable",
-      filePath,
-      {
-        'date_from': DateFormat('yyyy-MM-dd').format(selectedDates['dateFrom']!),
-        'date_to': DateFormat('yyyy-MM-dd').format(selectedDates['dateTo']!),
+  Future<void> _exportSales() async {
+    _scaffoldKey.currentState?.closeDrawer();
+    
+    // Show the date range picker dialog
+    final selectedDates = await showDialog<Map<String, DateTime?>>(
+      context: context,
+      builder: (BuildContext context) {
+        return DateRangePickerDialog2();
       },
     );
 
-    // Open the downloaded file
-    final result = await OpenFile.open(filePath);
+    if (selectedDates == null || 
+        selectedDates['dateFrom'] == null || 
+        selectedDates['dateTo'] == null) {
+      return;
+    }
     
-    if (result.type != ResultType.done) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to open file: ${result.message}')),
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        },
       );
-    } else {
-       final file = File(filePath);
-      if (await file.exists()) {
-        await Future.delayed(Duration(seconds: 5));
-        await file.delete();
+      
+      final directory = await getApplicationDocumentsDirectory();
+      final fileName = 'Sales_${DateFormat('yyyyMMdd').format(DateTime.now())}.xlsx';
+      final filePath = '${directory.path}/$fileName';
 
+      // Send the selected dates to the API
+      await downloadDataPost(
+        "$ServerIP/api/protected/ExportSalesTable",
+        filePath,
+        {
+          'date_from': DateFormat('yyyy-MM-dd').format(selectedDates['dateFrom']!),
+          'date_to': DateFormat('yyyy-MM-dd').format(selectedDates['dateTo']!),
+        },
+      );
+
+      // Close loading dialog
+      Navigator.of(context).pop();
+      
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Sales data exported to $fileName'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      // Open the downloaded file
+      final result = await OpenFile.open(filePath);
+      
+      if (result.type != ResultType.done) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to open file: ${result.message}'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       } else {
-
+        // Auto-delete file after a delay
+        Future.delayed(const Duration(minutes: 5), () async {
+          final file = File(filePath);
+          if (await file.exists()) {
+            await file.delete();
+          }
+        });
       }
+    } catch (e) {
+      // Close loading dialog if still open
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).pop();
+      }
+      
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error exporting sales data: $e'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
-},
-          
+
+  Future<bool> _onWillPop() async {
+    if (_selectedIndex != 0) {
+      setState(() {
+        _selectedIndex = 0;
+        _currentScreen = _navigationItems[0].screen;
+      });
+      return false;
+    }
+    return true;
+  }
+
+  void _logout() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Logout',
+            style: GoogleFonts.jost(
+              fontWeight: FontWeight.bold,
+            ),
           ),
+          content: Text(
+            'Are you sure you want to log out?',
+            style: GoogleFonts.jost(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.jost(),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Logout(context);
+              },
+              child: Text(
+                'Logout',
+                style: GoogleFonts.jost(
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
-           ListTile(
-            leading: Icon(Icons.logout_outlined, ),
-            title: Text("Logout", style: GoogleFonts.jost(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w700,
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        key: _scaffoldKey,
+        appBar: AppBar(
+          centerTitle: true,
+          title: Text(
+            _navigationItems[_selectedIndex].title,
+            style: GoogleFonts.jost(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          elevation: 2,
+          leading: IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+          ),
+          actions: [
+            if (userInfo.permission == 2)
+              IconButton(
+                icon: const Icon(Icons.calendar_today),
+                tooltip: 'My Schedule',
+                onPressed: () => _navigateToIndex(
+                  _navigationItems.indexWhere((item) => item.title == 'My Schedule')
+                ),
+              ),
+            IconButton(
+              icon: const Icon(Icons.logout_rounded),
+              tooltip: 'Logout',
+              onPressed: _logout,
+            ),
+          ],
+        ),
+        drawer: AppDrawer(),
+        body: _currentScreen,
+      ),
+    );
+  }
 
-                                      ),),
-            onTap: () {
-              Logout(context);
-              }
+  Widget AppDrawer() {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+    
+    return Drawer(
+      backgroundColor: Colors.white,
+      elevation: 2,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.only(top: 50, bottom: 20),
+            width: double.infinity,
+            color: primaryColor.withOpacity(0.05),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  width: 180,
+                  child: Image.asset(
+                    "assets/images/Logo_Dark.png",
+                  ),
+                ),
+                const SizedBox(height: 15),
+                Text(
+                  userInfo.permission == 2 ? "Therapist" : "Admin",
+                  style: GoogleFonts.jost(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black54,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                ..._navigationItems.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  return ListTile(
+                    leading: Icon(
+                      item.icon,
+                      color: _selectedIndex == index 
+                          ? primaryColor 
+                          : Colors.black54,
+                    ),
+                    title: Text(
+                      item.title,
+                      style: GoogleFonts.jost(
+                        fontSize: 18,
+                        fontWeight: _selectedIndex == index 
+                            ? FontWeight.w700 
+                            : FontWeight.w500,
+                        color: _selectedIndex == index 
+                            ? primaryColor 
+                            : Colors.black87,
+                      ),
+                    ),
+                    selected: _selectedIndex == index,
+                    selectedTileColor: primaryColor.withOpacity(0.1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    onTap: () => _navigateToIndex(index),
+                  );
+                }).toList(),
+                
+                const Divider(height: 32, thickness: 1),
+                
+                ListTile(
+                  leading: const Icon(Icons.file_download_outlined),
+                  title: Text(
+                    "Export Sales",
+                    style: GoogleFonts.jost(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  onTap: _exportSales,
+                ),
+                
+                ListTile(
+                  leading: const Icon(
+                    Icons.logout_outlined,
+                    color: Colors.red,
+                  ),
+                  title: Text(
+                    "Logout",
+                    style: GoogleFonts.jost(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.red,
+                    ),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  onTap: _logout,
+                ),
+              ],
+            ),
+          ),
+          
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              "PhysioUp v1.0.0",
+              style: GoogleFonts.jost(
+                fontSize: 12,
+                color: Colors.black45,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
+}
+
+class NavigationItem {
+  final String title;
+  final IconData icon;
+  final Widget screen;
+  
+  NavigationItem({
+    required this.title,
+    required this.icon,
+    required this.screen,
+  });
 }

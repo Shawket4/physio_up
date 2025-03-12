@@ -9,7 +9,7 @@ import 'package:intl/intl.dart' as intl;
 import 'package:phsyio_up/secretary/router.dart';
 
 class MakeAppointmentScreen extends StatefulWidget {
-  final int patientID; // Add patientID as a parameter
+  final int patientID;
 
   const MakeAppointmentScreen({super.key, required this.patientID});
 
@@ -79,6 +79,13 @@ class MakeAppointmentScreenState extends State<MakeAppointmentScreen> {
     selectedTimeBlock ??= timeBlocks[0];
   }
 
+  void _selectTherapist(dynamic newTherapist) {
+    setState(() {
+      selectedTherapist = newTherapist;
+      loadSchedule(newTherapist['ID'], therapists.firstWhere((therapist) => therapist["ID"] == newTherapist['ID']));
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -87,12 +94,13 @@ class MakeAppointmentScreenState extends State<MakeAppointmentScreen> {
         centerTitle: true,
         backgroundColor: const Color(0xFF011627),
         title: const Text(
-          "Make Appointment",
+          "Schedule Appointment",
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w600,
           ),
         ),
+        elevation: 0,
       ),
       body: FutureBuilder(
         future: loadTherapists(),
@@ -106,188 +114,331 @@ class MakeAppointmentScreenState extends State<MakeAppointmentScreen> {
               ),
             );
           }
-          return SingleChildScrollView(
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const SizedBox(height: 15.0),
-                SizedBox(
-                  width: double.infinity,
-                  height: MediaQuery.of(context).size.height / 1.5,
-                  child: Card(
-                    color: const Color(0xFFF1F3FF),
-                    elevation: 5,
+                // Date selection card
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                Text(
-                                  intl.DateFormat("yyyy/MM/dd").format(currentDate),
-                                  style: GoogleFonts.jost(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: () async {
-                                    DateTime? returnedDate = await showDatePicker(
-                                      context: context,
-                                      initialDate: currentDate,
-                                      firstDate: DateTime.now().subtract(const Duration(days: 365 * 30)),
-                                      lastDate: DateTime.now().add(const Duration(days: 365 * 30)),
-                                    );
-                                    if (returnedDate != null) {
-                                      setState(() {
-                                        isWorkingHoursLoaded = false;
-                                        currentDate = returnedDate;
-                                        selectedDate = returnedDate;
-                                      });
-                                    }
-                                  },
-                                  icon: const Icon(Icons.calendar_month_rounded),
-                                ),
-                              ],
+                          Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: const Color(0xFF011627),
+                      child: Text(
+                        selectedTherapist["name"].substring(0, 1),
+                        style: GoogleFonts.jost(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            selectedTherapist["name"],
+                            style: GoogleFonts.jost(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF011627),
                             ),
                           ),
-                        ),
-                        Text("Therapist: ${selectedTherapist["name"]}", style: TextStyle(fontSize: 18)),
-                        const SizedBox(height: 10),
-                        Expanded(
-                          child: GridView.builder(
-                            shrinkWrap: true,
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              childAspectRatio: 2,
-                              mainAxisSpacing: 10,
+                          const SizedBox(height: 4),
+                          Text(
+                            "Selected therapist",
+                            style: GoogleFonts.jost(
+                              fontSize: 14,
+                              color: Colors.grey.shade700,
                             ),
-                            itemBuilder: (context, index) {
-                              List<dynamic> availableTherapists = therapists.where((therapist) {
-                                var bookedTimes = therapist["schedule"]["time_blocks"] ?? [];
-                                DateTime selectedTime = timeBlocks[index].dateTime!;
-
-                                // Check if the selected time is booked
-                                bool isBooked = bookedTimes.any((block) {
-                                  DateTime bookedTime = intl.DateFormat("yyyy/MM/dd & h:mm a").parse(block["date"]);
-                                  return bookedTime == selectedTime;
-                                });
-
-                                return !isBooked; // Return therapists who are NOT booked at this time
-                              }).toList();
-                              return Opacity(
-                                opacity: availableTherapists.isEmpty ? 0.4 : 1,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    showDialog(
-                                      barrierDismissible: false,
-                                      context: context,
-                                      builder: (context) {
-                                        // Filter therapists based on their availability at the selected time
-                                        return AlertDialog(
-                                          title: const Text("Available Therapists"),
-                                          content: SizedBox(
-                                            width: double.maxFinite,
-                                            child: availableTherapists.isNotEmpty
-                                                ? ListView(
-                                                    shrinkWrap: true,
-                                                    children: availableTherapists.map((therapist) {
-                                                      return ListTile(
-                                                        title: Text(therapist["name"]),
-                                                        onTap: () {
-                                                          setState(() {
-                                                            selectedTherapist = therapist;
-                                                            selectedTimeBlock = timeBlocks[index];
-                                                          });
-                                                          Navigator.pop(context); // Close dialog
-                                                        },
-                                                      );
-                                                    }).toList(),
-                                                  )
-                                                : const Text("No available therapists for this time slot."),
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
-                                  child: SizedBox(
-                                    height: 50,
-                                    child: Card(
-                                      color: selectedTimeBlock!.dateTime! == timeBlocks[index].dateTime
-                                          ? Theme.of(context).primaryColor
-                                          : const Color(0xFFFEFEFE),
-                                      elevation: 2,
-                                      child: Center(
-                                        child: Text(
-                                          intl.DateFormat("h:mm a").format(timeBlocks[index].dateTime!),
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: selectedTimeBlock!.dateTime! == timeBlocks[index].dateTime
-                                                ? Colors.white
-                                                : null,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            
+                        Text(
+                          "Select Date",
+                          style: GoogleFonts.jost(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        InkWell(
+                          onTap: () async {
+                            DateTime? returnedDate = await showDatePicker(
+                              context: context,
+                              initialDate: currentDate,
+                              firstDate: DateTime.now(),
+                              lastDate: DateTime.now().add(const Duration(days: 90)),
+                              builder: (context, child) {
+                                return Theme(
+                                  data: Theme.of(context).copyWith(
+                                    colorScheme: ColorScheme.light(
+                                      primary: Theme.of(context).primaryColor,
                                     ),
                                   ),
+                                  child: child!,
+                                );
+                              },
+                            );
+                            if (returnedDate != null) {
+                              setState(() {
+                                isWorkingHoursLoaded = false;
+                                currentDate = returnedDate;
+                                selectedDate = returnedDate;
+                              });
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  intl.DateFormat("EEEE, MMMM d, yyyy").format(currentDate),
+                                  style: GoogleFonts.jost(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                              );
-                            },
-                            itemCount: timeBlocks.length,
+                                const Icon(Icons.calendar_month_rounded, color: Color(0xFF011627)),
+                              ],
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                ElevatedButton(
-                  onPressed: () async {
-                    showLoadingDialog(context);
-                    try {
-                      DateTime finalDateTime = DateTime(
-                        selectedDate.year,
-                        selectedDate.month,
-                        selectedDate.day,
-                        selectedTimeBlock!.dateTime!.hour,
-                        selectedTimeBlock!.dateTime!.minute,
-                      );
-                      Map<String, dynamic> data = {
-                        "date_time": intl.DateFormat("yyyy/MM/dd & h:mm a").format(finalDateTime),
-                        "therapist_id": selectedTherapist['ID'],
-                        "patient_id": widget.patientID, // Use the patientID parameter
-                      };
-                      var response = await postData("$ServerIP/api/RequestAppointment", data)
-                          .timeout(const Duration(seconds: 5));
-                      if (response["message"] == "Requested Successfully") {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Appointment Received!")),
+                
+                const SizedBox(height: 16),
+                
+                
+                
+                const SizedBox(height: 16),
+                
+                // Time slots section
+                Text(
+                  "Available Time Slots",
+                  style: GoogleFonts.jost(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          childAspectRatio: 1.8,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                        ),
+                        itemBuilder: (context, index) {
+                          List<dynamic> availableTherapists = therapists.where((therapist) {
+                            var bookedTimes = therapist["schedule"]["time_blocks"] ?? [];
+                            DateTime selectedTime = timeBlocks[index].dateTime!;
+
+                            bool isBooked = bookedTimes.any((block) {
+                              DateTime bookedTime = intl.DateFormat("yyyy/MM/dd & h:mm a").parse(block["date"]);
+                              return bookedTime == selectedTime;
+                            });
+
+                            return !isBooked;
+                          }).toList();
+                          
+                          bool isSelected = selectedTimeBlock!.dateTime! == timeBlocks[index].dateTime;
+                          bool isAvailable = availableTherapists.isNotEmpty;
+                          
+                          return GestureDetector(
+                            onTap: isAvailable ? () {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: Text(
+                                      "Available Therapists",
+                                      style: GoogleFonts.jost(
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).primaryColor,
+                                      ),
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    content: SizedBox(
+                                      width: double.maxFinite,
+                                      child: ListView(
+                                        shrinkWrap: true,
+                                        children: availableTherapists.map((therapist) {
+                                          return ListTile(
+                                            leading: const CircleAvatar(
+                                              backgroundColor: Color(0xFF011627),
+                                              child: Icon(Icons.person, color: Colors.white),
+                                            ),
+                                            title: Text(
+                                              therapist["name"],
+                                              style: GoogleFonts.jost(fontWeight: FontWeight.w500),
+                                            ),
+                                            onTap: () {
+                                              setState(() {
+                                                selectedTherapist = therapist;
+                                                selectedTimeBlock = timeBlocks[index];
+                                              });
+                                              Navigator.pop(context);
+                                            },
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text(
+                                          "Cancel",
+                                          style: GoogleFonts.jost(color: Colors.grey),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            } : null,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? Theme.of(context).primaryColor
+                                    : isAvailable
+                                        ? Colors.white
+                                        : Colors.grey.shade200,
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: isSelected
+                                    ? [
+                                        BoxShadow(
+                                          color: Theme.of(context).primaryColor.withOpacity(0.3),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 3),
+                                        )
+                                      ]
+                                    : null,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  intl.DateFormat("h:mm a").format(timeBlocks[index].dateTime!),
+                                  style: GoogleFonts.jost(
+                                    fontSize: 16,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : isAvailable
+                                            ? const Color(0xFF011627)
+                                            : Colors.grey,
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                        itemCount: timeBlocks.length,
+                      ),
+                    ),
+                  ),
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Book button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      showLoadingDialog(context);
+                      try {
+                        DateTime finalDateTime = DateTime(
+                          selectedDate.year,
+                          selectedDate.month,
+                          selectedDate.day,
+                          selectedTimeBlock!.dateTime!.hour,
+                          selectedTimeBlock!.dateTime!.minute,
                         );
-                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => MainWidget())); // Go back to the previous screen
+                        Map<String, dynamic> data = {
+                          "date_time": intl.DateFormat("yyyy/MM/dd & h:mm a").format(finalDateTime),
+                          "therapist_id": selectedTherapist['ID'],
+                          "patient_id": widget.patientID,
+                        };
+                        var response = await postData("$ServerIP/api/RequestAppointment", data)
+                            .timeout(const Duration(seconds: 5));
+                        if (response["message"] == "Requested Successfully") {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Appointment scheduled successfully!"),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => MainWidget()));
+                        }
+                      } catch (e) {
+                        showErrorDialog(context);
                       }
-                    } catch (e) {
-                      showErrorDialog(context);
-                    }
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF011627),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 3,
+                    ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        const Icon(Icons.check_circle_outline, color: Colors.white),
+                        const SizedBox(width: 8),
                         Text(
-                          "Book",
+                          "Confirm Appointment",
                           style: GoogleFonts.jost(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
+                            color: Colors.white,
                           ),
-                        ),
-                        const SizedBox(width: 10),
-                        const Icon(
-                          Icons.book_rounded,
-                          color: Colors.white,
                         ),
                       ],
                     ),

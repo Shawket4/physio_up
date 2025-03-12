@@ -2,15 +2,18 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/appointment_request.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:phsyio_up/models/therapist.dart';
 import 'package:phsyio_up/secretary/accept_appointment.dart';
 import 'dart:convert';
 
 import 'package:phsyio_up/secretary/router.dart';
+import 'package:rive/rive.dart';
 
 class AppointmentRequestScreen extends StatefulWidget {
   const AppointmentRequestScreen({super.key});
@@ -21,6 +24,7 @@ class AppointmentRequestScreen extends StatefulWidget {
 
 class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
   List<AppointmentRequest> _requests = [];
+  List<Appointment> _appointments = [];
   bool _isLoading = true;
   String? text;
 
@@ -67,6 +71,10 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
         requests.add(newRequest);
       }
 
+      response = await getData("$ServerIP/api/protected/FetchUnassignedAppointments");
+      print(response);
+     _appointments =  (response as List<dynamic>?)?.map((e) => Appointment.fromJson(e)).toList() ?? [];
+      print(_appointments);
       setState(() {
         _requests = requests;
         _isLoading = false;
@@ -119,250 +127,454 @@ void _reconnect() {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Appointment Requests"),
-        centerTitle: true,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: Icon(Icons.menu),
-            onPressed: () => Scaffold.of(context).openDrawer(),
+  return Scaffold(
+    backgroundColor: Colors.white,
+    // drawer: AppDrawer(),
+    body: SingleChildScrollView(
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.waves,
+                  color: Theme.of(context).primaryColor,
+                  size: 26,
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    "Good ${text.toString()}${userInfo.permission == 2 ? ": Dr. ${userInfo.username}" : ""}",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 20,
+                      color: Colors.blue.shade800,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          
-        ),
-        
-        
-      ),
-      drawer: AppDrawer(),
-      body: _isLoading
-          ? Center(
-              child: Lottie.asset(
-                "assets/lottie/Loading.json",
-                height: 200,
-                width: 200,
-              ),
-            )
-          : _requests.isEmpty
-              ? const Center(
-                  child: Text("No appointment requests found."),
+          _isLoading
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(40),
+                    child: Lottie.asset(
+                      "assets/lottie/Loading.json",
+                      height: 200,
+                      width: 200,
+                    ),
+                  ),
                 )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _requests.length,
-                  itemBuilder: (context, index) {
-                    final request = _requests[index];
-                    return Card(
-                      elevation: 4,
-                      margin: const EdgeInsets.only(bottom: 16),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+              : Column(
+                  children: [
+                    // Appointment Requests Header
+                    if (_requests.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                        child: Row(
                           children: [
+                            Icon(
+                              Icons.schedule_send,
+                              color: Colors.blue.shade800,
+                              size: 22,
+                            ),
+                            SizedBox(width: 8),
                             Text(
-                              request.PatientName,
-                              style: const TextStyle(
+                              "Appointment Requests",
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
+                                color: Colors.blue.shade800,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              "Date & Time: ${intl.DateFormat("yyyy/MM/dd & h:mm a").format(request.timeBlock.dateTime!)}",
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey,
+                            SizedBox(width: 8),
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade100,
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              "Therapist: ${request.TherapistName}",
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              "Package Requested: ${request.PackageDescriptionRequested}",
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                ElevatedButton(
-                                  onPressed: () {
-                                    // Handle Accept button press
-                                    _handleAccept(request.ID);
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                  child: const Text("Accept"),
+                              child: Text(
+                                "${_requests.length}",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue.shade800,
                                 ),
-                                const SizedBox(width: 8),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    // Handle Reject button press
-                                    _handleReject(request.ID);
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                  child: const Text("Reject"),
-                                ),
-                              ],
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    );
-                  },
+                    _requests.isEmpty
+                        ? Padding(
+                            padding: const EdgeInsets.all(40),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.event_busy,
+                                  size: 64,
+                                  color: Colors.grey.shade400,
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  "No appointment requests found",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey.shade600,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                            itemCount: _requests.length,
+                            itemBuilder: (context, index) {
+                              final request = _requests[index];
+                              return Card(
+                                elevation: 3,
+                                margin: const EdgeInsets.only(bottom: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  side: BorderSide(
+                                    color: Colors.blue.shade100,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          CircleAvatar(
+                                            backgroundColor: Colors.blue.shade50,
+                                            child: Text(
+                                              request.PatientName.isNotEmpty
+                                                  ? request.PatientName[0].toUpperCase()
+                                                  : "?",
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.blue.shade800,
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              request.PatientName,
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 16),
+                                      _buildInfoRow(
+                                        Icons.calendar_today,
+                                        "Date & Time",
+                                        intl.DateFormat("yyyy/MM/dd & h:mm a").format(request.timeBlock.dateTime!),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      _buildInfoRow(
+                                        Icons.person,
+                                        "Therapist",
+                                        request.TherapistName,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      _buildInfoRow(
+                                        Icons.medical_services,
+                                        "Package",
+                                        request.PackageDescriptionRequested,
+                                      ),
+                                      const SizedBox(height: 20),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        children: [
+                                          ElevatedButton.icon(
+                                            onPressed: () {
+                                              _handleAccept(request.ID);
+                                            },
+                                            icon: Icon(Icons.check, size: 18),
+                                            label: const Text("Accept"),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.green,
+                                              foregroundColor: Colors.white,
+                                              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          ElevatedButton.icon(
+                                            onPressed: () {
+                                              _handleReject(request.ID);
+                                            },
+                                            icon: Icon(Icons.close, size: 18),
+                                            label: const Text("Reject"),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.red,
+                                              foregroundColor: Colors.white,
+                                              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+
+                    // Appointments Header
+                    if (_appointments.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.event_available,
+                              color: Colors.blue.shade800,
+                              size: 22,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              "Appointments",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue.shade800,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade100,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                "${_appointments.length}",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue.shade800,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    _appointments.isEmpty
+                        ? Padding(
+                            padding: const EdgeInsets.all(40),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.event_busy,
+                                  size: 64,
+                                  color: Colors.grey.shade400,
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  "No upcoming appointments found",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey.shade600,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                            itemCount: _appointments.length,
+                            itemBuilder: (context, index) {
+                              final appointment = _appointments[index];
+                              return Card(
+                                elevation: 3,
+                                margin: const EdgeInsets.only(bottom: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  side: BorderSide(
+                                    color: Colors.green.shade100,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          CircleAvatar(
+                                            backgroundColor: Colors.green.shade50,
+                                            child: Text(
+                                              appointment.patientName.isNotEmpty
+                                                  ? appointment.patientName[0].toUpperCase()
+                                                  : "?",
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.green.shade800,
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              appointment.patientName,
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 16),
+                                      _buildInfoRow(
+                                        Icons.calendar_today,
+                                        "Date & Time",
+                                        appointment.dateTime,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      _buildInfoRow(
+                                        Icons.person,
+                                        "Therapist",
+                                        appointment.therapistName,
+                                      ),
+                                      const SizedBox(height: 20),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        children: [
+                                          ElevatedButton.icon(
+                                            onPressed: () {
+                                              _handleSetPackage(appointment.id);
+                                            },
+                                            icon: Icon(Icons.medical_services, size: 18),
+                                            label: const Text("Set Package"),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.blue,
+                                              foregroundColor: Colors.white,
+                                              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                  ],
                 ),
-    );
-  }
-
-void _handleAccept(int requestId) {
-  // _showAcceptDialog(requestId);
-
-  // Find the selected request based on requestId
-  final request = _requests.firstWhere((req) => req.ID == requestId);
-
-  // Navigate to the TreatmentPlanScreen with the patient ID
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => TreatmentPlanScreen(patientId: request.PatientID, requestId: requestId, selectedDateTime: request.timeBlock.dateTime!, requestedPlanDesc: request.PackageDescriptionRequested,),
+        ],
+      ),
     ),
   );
+}
+
+Widget _buildInfoRow(IconData icon, String label, String value) {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Icon(
+        icon,
+        size: 18,
+        color: Colors.grey.shade600,
+      ),
+      SizedBox(width: 10),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          SizedBox(height: 2),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
+}
+
+Future<String> _handleAccept(int requestId) async {
+
+    final request = _requests.firstWhere((req) => req.ID == requestId);
+    final url = "$ServerIP/api/protected/AcceptAppointment";
+    final data = {
+      "appointment_request_id": requestId,
+      "extra": {
+        "date_time": intl.DateFormat("yyyy/MM/dd & h:mm a").format(request.timeBlock.dateTime!),
+      },
+    };
+    print(data);
+    try {
+      var response = await postData(url, data);
+      print(response);
+      if (response is DioException) {
+        return response.response?.data["error"] ?? "An unknown error occurred";
+      }
+      return ""; // No error
+    } catch (e) {
+      print("Error submitting appointment: $e");
+      return "An error occurred while submitting the appointment.";
+    }
+
+
 
 }
 
-// void _showAcceptDialog(int requestId) {
-//   final _formKey = GlobalKey<FormState>();
-//   final TextEditingController _priceController = TextEditingController();
-//   final TextEditingController _notesController = TextEditingController();
-
-//   // Find the selected request based on requestId
-//   final request = _requests.firstWhere((req) => req.ID == requestId);
-
-//   // Use the appointment's existing time as the default value
-//   DateTime selectedDateTime = request.timeBlock.dateTime!;
-
-//   String? errorMessage;
-
-//   showDialog(
-//     context: context,
-//     builder: (context) {
-//       return StatefulBuilder(
-//         builder: (context, setState) {
-//           return AlertDialog(
-//             title: const Text("Confirm Appointment"),
-//             content: Form(
-//               key: _formKey,
-//               child: Column(
-//                 mainAxisSize: MainAxisSize.min,
-//                 children: [
-//                   if (errorMessage != null)
-//                     Padding(
-//                       padding: const EdgeInsets.only(bottom: 8.0),
-//                       child: Text(
-//                         errorMessage!,
-//                         style: const TextStyle(color: Colors.red),
-//                       ),
-//                     ),
-//                   TextFormField(
-//                     controller: TextEditingController(
-//                       text: intl.DateFormat("yyyy/MM/dd & h:mm a").format(selectedDateTime),
-//                     ),
-//                     readOnly: true,
-//                     decoration: const InputDecoration(labelText: "Date & Time"),
-//                     onTap: () async {
-//                       DateTime? pickedDate = await showDatePicker(
-//                         context: context,
-//                         initialDate: selectedDateTime,
-//                         firstDate: DateTime.now(),
-//                         lastDate: DateTime(2100),
-//                       );
-//                       if (pickedDate != null) {
-//                         TimeOfDay? pickedTime = await showTimePicker(
-//                           context: context,
-//                           initialTime: TimeOfDay.fromDateTime(selectedDateTime),
-//                         );
-//                         if (pickedTime != null) {
-//                           setState(() {
-//                             selectedDateTime = DateTime(
-//                               pickedDate.year,
-//                               pickedDate.month,
-//                               pickedDate.day,
-//                               pickedTime.hour,
-//                               pickedTime.minute,
-//                             );
-//                           });
-//                         }
-//                       }
-//                     },
-//                   ),
-//                   const SizedBox(height: 12),
-//                   TextFormField(
-//                     controller: _priceController,
-//                     keyboardType: TextInputType.number,
-//                     decoration: const InputDecoration(labelText: "Price"),
-//                     validator: (value) {
-//                       if (value == null || value.isEmpty) {
-//                         return "Please enter a price";
-//                       }
-//                       if (double.tryParse(value) == null) {
-//                         return "Enter a valid number";
-//                       }
-//                       return null;
-//                     },
-//                   ),
-//                   const SizedBox(height: 12),
-//                   TextFormField(
-//                     controller: _notesController,
-//                     decoration: const InputDecoration(labelText: "Notes (optional)"),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//             actions: [
-//               TextButton(
-//                 onPressed: () => Navigator.pop(context),
-//                 child: const Text("Cancel"),
-//               ),
-//               ElevatedButton(
-//                 onPressed: () async {
-//                   if (_formKey.currentState!.validate()) {
-//                     final response = await _submitAppointment(
-//                       requestId,
-//                       _priceController.text,
-//                       _notesController.text,
-//                       selectedDateTime, // Pass the selected date-time
-//                     );
-//                     if (response != null) {
-//                       setState(() => errorMessage = response);
-//                     } else {
-//                       Navigator.pop(context);
-//                     }
-//                   }
-//                 },
-//                 child: const Text("Send"),
-//               ),
-//             ],
-//           );
-//         },
-//       );
-//     },
-//   );
-// }
-
+Future<void> _handleSetPackage(int appointmentId) async {
+   final appointment = _appointments.firstWhere((req) => req.id == appointmentId);
+    Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => TreatmentPlanScreen(patientId: appointment.patientID, appointmentId: appointmentId, requestedPlanDesc: "",),
+    ),
+  );
+}
 
 
 

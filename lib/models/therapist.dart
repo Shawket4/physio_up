@@ -82,12 +82,14 @@ class Appointment {
   final int id;
   final String dateTime;
   final String patientName;
+  final int patientID;
+  final String therapistName;
   final int price;
   bool isCompleted;
   bool isPaid;
   final String notes;
 
-  Appointment({
+  Appointment( {
     required this.id,
     required this.dateTime,
     required this.patientName,
@@ -95,6 +97,8 @@ class Appointment {
     required this.isCompleted,
     required this.isPaid,
     required this.notes,
+    required this.therapistName,
+    required this.patientID,
   });
 
   factory Appointment.fromJson(Map<String, dynamic> json) {
@@ -106,6 +110,8 @@ class Appointment {
       isCompleted: json['is_completed'] ?? false,
       isPaid: json['is_paid'] ?? false,
       notes: json['notes'] ?? "",
+      therapistName: json["therapist_name"],
+      patientID: json["patient_id"],
     );
   }
 }

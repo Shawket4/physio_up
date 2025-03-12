@@ -32,13 +32,22 @@ Future<dynamic> getData(String url) async {
     var request = await dio.get(url);
     return request.data;
   } catch (e) {
-
+    print(e);
       return e;
       }
 }
 
 Future<Response<dynamic>> downloadData(String url, filepath) async {
     var request = await dio.download(url, filepath);
+    return request;
+}
+
+Future<dynamic> getDataAsBytes(String url) async {
+  var request = await dio.get(url,  options: Options(
+            responseType: ResponseType.bytes,
+            followRedirects: false,
+            validateStatus: (status) { return status! < 500; }
+            ),);
     return request;
 }
 
