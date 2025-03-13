@@ -18,6 +18,8 @@ jobs:
         with:
           java-version: 17
           distribution: zulu
+      - uses: subosito/flutter-action@v2
+        with:
           flutter-version: 3.27.3
       - run: flutter config --enable-windows-desktop
       - run: flutter create .
@@ -30,4 +32,3 @@ jobs:
           path: |
             build\windows
             build\app
-      
