@@ -18,7 +18,6 @@ jobs:
         with:
           java-version: 17
           distribution: zulu
-        with:
           flutter-version: 3.27.3
       - run: flutter config --enable-windows-desktop
       - run: flutter create .
