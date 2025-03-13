@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/treatment_plan.dart';
 import 'package:phsyio_up/screens/treatment_packages/create_treatment_screen.dart';
 import 'package:phsyio_up/screens/treatment_packages/edit_treatment_screen.dart';
-import 'package:phsyio_up/secretary/router.dart';
 
 class TreatmentListScreen extends StatefulWidget {
   const TreatmentListScreen({super.key});
@@ -107,9 +107,13 @@ class _TreatmentListScreenState extends State<TreatmentListScreen> {
           future: _treatmentsFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
+              return Center(
+                    child: Lottie.asset(
+                      "assets/lottie/Loading.json",
+                      height: 200,
+                      width: 200,
+                    ),
+                  );
             }
             
             if (snapshot.hasError) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
@@ -41,10 +42,14 @@ class PatientDetailScreen extends StatelessWidget {
       future: FetchPatientCurrentPackage(patient.id),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
+          return Scaffold(
             body: Center(
-              child: CircularProgressIndicator(),
-            ),
+                    child: Lottie.asset(
+                      "assets/lottie/Loading.json",
+                      height: 200,
+                      width: 200,
+                    ),
+                  ),
           );
         } else {
           TreatmentPlan treatmentPlan = snapshot.data!;

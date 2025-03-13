@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/therapist.dart';
-import 'package:phsyio_up/secretary/router.dart';
 import 'package:phsyio_up/secretary/therapist_detail_screen.dart';
 
 class TherapistListScreen extends StatefulWidget {
@@ -56,9 +56,13 @@ class _TherapistListScreenState extends State<TherapistListScreen> {
           future: _therapistsFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting && !_isRefreshing) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
+              return Center(
+                    child: Lottie.asset(
+                      "assets/lottie/Loading.json",
+                      height: 200,
+                      width: 200,
+                    ),
+                  );
             } 
             
             if (snapshot.hasError) {

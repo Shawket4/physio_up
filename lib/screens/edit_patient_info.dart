@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/patient.dart';
-import 'package:phsyio_up/secretary/router.dart';
 
 class PatientEditScreen extends StatefulWidget {
   final Patient patient;
@@ -117,7 +116,7 @@ class _PatientEditScreenState extends State<PatientEditScreen> {
 
       // Call the API to save the updated patient data - same API endpoint and format
       try {
-        final response = await postData(
+        await postData(
           "$ServerIP/api/protected/UpdatePatient",
           updatedPatient.toJson(),
         );
@@ -156,7 +155,13 @@ class _PatientEditScreenState extends State<PatientEditScreen> {
     return Scaffold(
        appBar: CustomAppBar(title: "Edit Patient Profile", actions: []),
       body: _isLoading 
-        ? const Center(child: CircularProgressIndicator())
+        ? Center(
+                    child: Lottie.asset(
+                      "assets/lottie/Loading.json",
+                      height: 200,
+                      width: 200,
+                    ),
+                  )
         : SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16.0),

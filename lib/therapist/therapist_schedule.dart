@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/main.dart';
-import 'package:phsyio_up/secretary/router.dart';
 import 'package:phsyio_up/therapist/add_time_block.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
@@ -66,11 +65,13 @@ class _TherapistScheduleScreenState extends State<TherapistScheduleScreen> {
       future: _fetchTherapist(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-            ),
-          );
+          return Center(
+                    child: Lottie.asset(
+                      "assets/lottie/Loading.json",
+                      height: 200,
+                      width: 200,
+                    ),
+                  );
         } else if (snapshot.hasError) {
           return Center(
             child: Column(

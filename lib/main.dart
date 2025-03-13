@@ -48,7 +48,7 @@ void main() async {
 
 
 dynamic whatsappLogin;
-dynamic qrCodeBytes;
+
 
 final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 late String jwt;
@@ -91,7 +91,7 @@ Future<String> get _getJwt async {
     print(whatsappLogin.toString());
     if (whatsappLogin["message"] != "Logged In") {
       print("object");
-      qrCodeBytes = await getDataAsBytes("$ServerIP/api/protected/GetWhatsAppQRCode");
+     
     }
   } catch (e) {
     print(e);
@@ -200,7 +200,7 @@ class _MainWidgetState extends State<MainWidget> {
                   if (whatsappLogin["message"] == "Logged In") {
                     return RouterWidget();
                   }
-                   return WhatsAppQRCode(qrCodeBytes: qrCodeBytes);
+                   return WhatsAppQRCode();
                 } else {
                     return const LoginPage();
                 }

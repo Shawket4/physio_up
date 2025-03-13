@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/patient.dart';
 import 'package:phsyio_up/screens/create_patient.dart';
 import 'package:phsyio_up/screens/edit_patient_info.dart';
 import 'package:phsyio_up/screens/patient_detail_screen.dart';
-import 'package:phsyio_up/secretary/router.dart';
 
 class PatientListScreen extends StatefulWidget {
   const PatientListScreen({super.key});
@@ -218,9 +218,13 @@ class _PatientListScreenState extends State<PatientListScreen> {
                 future: _patientsFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting && !_isRefreshing) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
+                    return Center(
+                    child: Lottie.asset(
+                      "assets/lottie/Loading.json",
+                      height: 200,
+                      width: 200,
+                    ),
+                  );
                   } 
                   
                   if (snapshot.hasError) {

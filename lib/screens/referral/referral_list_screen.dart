@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/referral.dart';
@@ -65,9 +66,13 @@ class _ReferralListScreenState extends State<ReferralListScreen> {
           future: _referralsFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting && !_isRefreshing) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
+              return Center(
+                    child: Lottie.asset(
+                      "assets/lottie/Loading.json",
+                      height: 200,
+                      width: 200,
+                    ),
+                  );
             } else if (snapshot.hasError) {
               return Center(
                 child: Column(

@@ -51,7 +51,7 @@ class _CreateTreatmentScreenState extends State<CreateTreatmentScreen> {
 
       // Call the API to create the new patient
       try {
-        final response = await postData(
+         await postData(
           "$ServerIP/api/protected/AddSuperTreatment", // Replace with your API endpoint
           newTreatmentPackage.toJson(), // Convert patient object to JSON
         );

@@ -1,11 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/referral.dart';
 import 'package:phsyio_up/models/treatment_plan.dart';
-import 'package:intl/intl.dart' as intl;
 
 class TreatmentPlanScreen extends StatefulWidget {
   final int patientId;
@@ -122,11 +122,13 @@ class _TreatmentPlanScreenState extends State<TreatmentPlanScreen> {
       future: _fetchPatientCurrentPackage(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-            ),
-          );
+          return Center(
+                    child: Lottie.asset(
+                      "assets/lottie/Loading.json",
+                      height: 200,
+                      width: 200,
+                    ),
+                  );
         } else {
           return _showSuperTreatmentDropdown
               ? _buildSuperTreatmentDropdown()

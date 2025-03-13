@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:phsyio_up/components/app_bar.dart';
@@ -103,9 +104,13 @@ class _RouterWidgetState extends State<RouterWidget> {
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          return Center(
+                    child: Lottie.asset(
+                      "assets/lottie/Loading.json",
+                      height: 200,
+                      width: 200,
+                    ),
+                  );
         },
       );
       

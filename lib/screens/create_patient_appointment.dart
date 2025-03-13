@@ -79,13 +79,6 @@ class MakeAppointmentScreenState extends State<MakeAppointmentScreen> {
     selectedTimeBlock ??= timeBlocks[0];
   }
 
-  void _selectTherapist(dynamic newTherapist) {
-    setState(() {
-      selectedTherapist = newTherapist;
-      loadSchedule(newTherapist['ID'], therapists.firstWhere((therapist) => therapist["ID"] == newTherapist['ID']));
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

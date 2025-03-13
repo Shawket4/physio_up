@@ -49,7 +49,7 @@ class _EditReferralScreenState extends State<EditReferralScreen> {
 
       // Call the API to create the new patient
       try {
-        final response = await postData(
+         await postData(
           "$ServerIP/api/protected/EditReferral", // Replace with your API endpoint
           newReferral.toJson(), // Convert patient object to JSON
         );

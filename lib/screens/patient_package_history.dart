@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
@@ -41,9 +42,13 @@ class _PatientPackageHistoryScreenState extends State<PatientPackageHistoryScree
         future: _fetchPatientPackageHistory(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return Center(
+                    child: Lottie.asset(
+                      "assets/lottie/Loading.json",
+                      height: 200,
+                      width: 200,
+                    ),
+                  );
           } else if (snapshot.hasError) {
             return Center(
               child: Text('Error: ${snapshot.error}'),

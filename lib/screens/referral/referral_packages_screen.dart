@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:phsyio_up/components/app_bar.dart';
@@ -7,10 +8,6 @@ import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/referral.dart';
 import 'package:phsyio_up/models/treatment_plan.dart';
-import 'package:phsyio_up/screens/treatment_packages/create_treatment_screen.dart';
-import 'package:phsyio_up/screens/treatment_packages/edit_treatment_screen.dart';
-
-import 'package:phsyio_up/secretary/router.dart';
 
 
 class ReferralPackageScreen extends StatefulWidget {
@@ -79,7 +76,13 @@ class _ReferralPackageScreenState extends State<ReferralPackageScreen> {
           future: _fetchData(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return CircularProgressIndicator();
+              return Center(
+                    child: Lottie.asset(
+                      "assets/lottie/Loading.json",
+                      height: 200,
+                      width: 200,
+                    ),
+                  );
             } else {
             return  snapshot.data!.isEmpty ? Text("No Referred Packages Found.") :
              ListView.builder(

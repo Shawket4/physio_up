@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/patient.dart';
-import 'package:phsyio_up/secretary/router.dart';
 
 class CreatePatientScreen extends StatefulWidget {
   const CreatePatientScreen({super.key});
@@ -110,7 +109,7 @@ class _CreatePatientScreenState extends State<CreatePatientScreen> {
 
       // Call the API to create the new patient - same API endpoint and format
       try {
-        final response = await postData(
+        await postData(
           "$ServerIP/api/protected/CreatePatient",
           newPatient.toJson(),
         );
@@ -149,7 +148,13 @@ class _CreatePatientScreenState extends State<CreatePatientScreen> {
     return Scaffold(
       appBar: CustomAppBar(title: "Create Patient Profile", actions: []),
       body: _isLoading 
-        ? const Center(child: CircularProgressIndicator())
+        ? Center(
+                    child: Lottie.asset(
+                      "assets/lottie/Loading.json",
+                      height: 200,
+                      width: 200,
+                    ),
+                  )
         : SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16.0),

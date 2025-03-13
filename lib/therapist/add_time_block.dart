@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/models/therapist.dart';
 import 'package:phsyio_up/dio_helper.dart';
@@ -81,9 +82,13 @@ class _MultiSelectAppointmentScreenState extends State<MultiSelectAppointmentScr
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
+        return Center(
+                    child: Lottie.asset(
+                      "assets/lottie/Loading.json",
+                      height: 200,
+                      width: 200,
+                    ),
+                  );
       },
     );
     
@@ -330,7 +335,7 @@ class _MultiSelectAppointmentScreenState extends State<MultiSelectAppointmentScr
                       var timeBlock = timeBlocks[index];
                       var dateTime = intl.DateFormat("yyyy/MM/dd & h:mm a").parse(timeBlock.date);
                       bool isSelected = selectedTimeBlocks.contains(dateTime);
-                      bool isAvailable = timeBlock.isAvailable!;
+                      bool isAvailable = timeBlock.isAvailable;
                       
                       return GestureDetector(
                         onTap: isAvailable ? () => toggleSelection(dateTime) : null,
