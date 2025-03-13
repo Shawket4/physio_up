@@ -11,7 +11,7 @@ import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/screens/patients.dart';
 import 'package:phsyio_up/screens/referral/referral_list_screen.dart';
 import 'package:phsyio_up/screens/treatment_packages/treatment_list_screen.dart';
-import 'package:phsyio_up/secretary/appointment_requests.dart';
+import 'package:phsyio_up/screens/appointment_request/appointment_requests.dart';
 import 'package:phsyio_up/secretary/date_dialog.dart';
 import 'package:phsyio_up/secretary/therapists.dart';
 import 'package:phsyio_up/therapist/therapist_schedule.dart';

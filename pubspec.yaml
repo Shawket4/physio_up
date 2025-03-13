@@ -45,6 +45,8 @@ dependencies:
   path_provider: ^2.1.5
   open_file: ^3.5.10
   file_picker: ^9.0.1
+  bloc: ^9.0.0
+  flutter_bloc: ^9.1.0
 
 dev_dependencies:
   flutter_web_optimizer: ^1.5.1
