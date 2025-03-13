@@ -298,6 +298,7 @@ class _WhatsAppQRCodeState extends State<WhatsAppQRCode> {
                                     content: Text('Checking WhatsApp connection...'),
                                   ),
                                 );
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => MainWidget()));
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Theme.of(context).primaryColor,
