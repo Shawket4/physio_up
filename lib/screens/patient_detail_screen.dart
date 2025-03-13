@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/patient.dart';
@@ -86,16 +87,8 @@ class PatientDetailScreen extends StatelessWidget {
                 ],
               ),
             ),
-            appBar: AppBar(
-              elevation: 0,
-              backgroundColor: theme.primaryColor,
-              foregroundColor: Colors.white,
-              title: Text(
-                patient.name,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              actions: <Widget>[
-                IconButton(
+             appBar: CustomAppBar(title: patient.name, actions: <Widget>[
+               IconButton(
                   tooltip: 'Edit Patient',
                   onPressed: () {
                     Navigator.push(
@@ -107,8 +100,7 @@ class PatientDetailScreen extends StatelessWidget {
                   },
                   icon: const Icon(Icons.edit),
                 ),
-              ],
-            ),
+             ]),
             body: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -230,7 +222,7 @@ class PatientDetailScreen extends StatelessWidget {
                                   ),
                                 ),
                                 title: Text(
-                                  "Dr. ${appointment.therapistName}",
+                                  "${appointment.therapistName}",
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                   ),

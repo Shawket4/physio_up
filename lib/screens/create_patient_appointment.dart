@@ -1,3 +1,4 @@
+import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/components/dialog.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
@@ -6,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:intl/intl.dart' as intl;
-import 'package:phsyio_up/secretary/router.dart';
 
 class MakeAppointmentScreen extends StatefulWidget {
   final int patientID;
@@ -90,18 +90,7 @@ class MakeAppointmentScreenState extends State<MakeAppointmentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF2F5F9),
-      appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: const Color(0xFF011627),
-        title: const Text(
-          "Schedule Appointment",
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        elevation: 0,
-      ),
+      appBar: CustomAppBar(title: "Schedule Appointment", actions: []),
       body: FutureBuilder(
         future: loadTherapists(),
         builder: (context, snapshot) {
@@ -143,7 +132,7 @@ class MakeAppointmentScreenState extends State<MakeAppointmentScreen> {
                       radius: 30,
                       backgroundColor: const Color(0xFF011627),
                       child: Text(
-                        selectedTherapist["name"].substring(0, 1),
+                        selectedTherapist["name"].split(' ').last[0].toUpperCase(),
                         style: GoogleFonts.jost(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -311,10 +300,17 @@ class MakeAppointmentScreenState extends State<MakeAppointmentScreen> {
                                       child: ListView(
                                         shrinkWrap: true,
                                         children: availableTherapists.map((therapist) {
+                                           
                                           return ListTile(
-                                            leading: const CircleAvatar(
+                                            leading: CircleAvatar(
                                               backgroundColor: Color(0xFF011627),
-                                              child: Icon(Icons.person, color: Colors.white),
+                                             child: Text(
+                        therapist["name"].split(' ').last[0].toUpperCase(),
+                        style: GoogleFonts.jost(
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
                                             ),
                                             title: Text(
                                               therapist["name"],

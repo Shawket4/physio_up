@@ -1,9 +1,7 @@
-import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/components/dialog.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import '../../main.dart';
 

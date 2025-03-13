@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/patient.dart';
@@ -153,14 +154,7 @@ class _PatientEditScreenState extends State<PatientEditScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Edit Patient Profile', style: GoogleFonts.jost(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-            ),),
-        centerTitle: true,
-        elevation: 2,
-      ),
+       appBar: CustomAppBar(title: "Edit Patient Profile", actions: []),
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator())
         : SafeArea(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/referral.dart';
@@ -67,9 +68,7 @@ class _CreateReferralScreenState extends State<CreateReferralScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Create Referral'),
-      ),
+      appBar: CustomAppBar(title: "Create Referral", actions: []),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(

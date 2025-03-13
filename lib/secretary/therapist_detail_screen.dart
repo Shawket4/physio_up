@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
@@ -48,7 +49,7 @@ class _TherapistDetailsScreenState extends State<TherapistDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.therapist.name)),
+      appBar: CustomAppBar(title: widget.therapist.name, actions: []),
       body: Column(
           children: [
             Container(

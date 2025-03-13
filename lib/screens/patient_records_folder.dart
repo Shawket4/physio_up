@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/dio_helper.dart';
 
 import 'package:phsyio_up/main.dart';
@@ -42,9 +43,7 @@ Future<String> _fetchFiles() async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Patient File Explorer'),
-      ),
+      appBar: CustomAppBar(title: "Patient File Explorer", actions: []),
       floatingActionButton: FloatingActionButton(onPressed: _uploadFile, child: Icon(Icons.upload_file),),
       body: Center(
         child: FutureBuilder(

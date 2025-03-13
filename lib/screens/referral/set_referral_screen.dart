@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/referral.dart';
@@ -56,9 +57,7 @@ Future<String> _fetchReferrals() async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Set Package Referral"),
-      ),
+      appBar: CustomAppBar(title: "Set Package Referral", actions: []),
       body: FutureBuilder(
         future: _fetchReferrals(),
         builder: (context, snapshot) {

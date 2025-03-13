@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/referral.dart';
@@ -116,12 +117,7 @@ class _TreatmentPlanScreenState extends State<TreatmentPlanScreen> {
   @override
   Widget build(BuildContext context) {
   return Scaffold(
-    appBar: AppBar(
-      title: const Text("Package"),
-      centerTitle: true,
-      elevation: 2,
-      backgroundColor: Theme.of(context).primaryColor,
-    ),
+    appBar: CustomAppBar(title: "Package", actions: []),
     body: FutureBuilder(
       future: _fetchPatientCurrentPackage(),
       builder: (context, snapshot) {

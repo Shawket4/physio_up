@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/patient.dart';
@@ -146,14 +147,7 @@ class _CreatePatientScreenState extends State<CreatePatientScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Create Patient Profile',  style: GoogleFonts.jost(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-            ),),
-        centerTitle: true,
-        
-      ),
+      appBar: CustomAppBar(title: "Create Patient Profile", actions: []),
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator())
         : SafeArea(

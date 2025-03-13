@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/referral.dart';
@@ -39,7 +40,7 @@ class _ReferralPackageScreenState extends State<ReferralPackageScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Referred Packages')),
+      appBar: CustomAppBar(title: "Referred Packages", actions: []),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.book),
         onPressed: () async {

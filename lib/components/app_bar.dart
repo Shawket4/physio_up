@@ -32,7 +32,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
       title: Text(
         widget.title,
         style: GoogleFonts.jost(
-          fontSize: 24,
+          fontSize: 22,
           fontWeight: FontWeight.w700,
         ),
       ),

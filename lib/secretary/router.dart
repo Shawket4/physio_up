@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/screens/patients.dart';
@@ -50,12 +51,12 @@ class _RouterWidgetState extends State<RouterWidget> {
         ),
       NavigationItem(
         title: 'Therapists',
-        icon: Icons.people_alt_rounded,
+        icon: Icons.person_rounded,
         screen: TherapistListScreen(),
       ),
       NavigationItem(
         title: 'Patients',
-        icon: Icons.person_rounded,
+        icon: Icons.people_alt_rounded,
         screen: PatientListScreen(),
       ),
       NavigationItem(
@@ -232,21 +233,10 @@ class _RouterWidgetState extends State<RouterWidget> {
       onWillPop: _onWillPop,
       child: Scaffold(
         key: _scaffoldKey,
-        appBar: AppBar(
-          centerTitle: true,
-          title: Text(
-            _navigationItems[_selectedIndex].title,
-            style: GoogleFonts.jost(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          elevation: 2,
-          leading: IconButton(
+        appBar: CustomAppBar(title: _navigationItems[_selectedIndex].title, leading: IconButton(
             icon: const Icon(Icons.menu),
             onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-          ),
-          actions: [
+          ), actions: <Widget>[
             if (userInfo.permission == 2)
               IconButton(
                 icon: const Icon(Icons.calendar_today),
@@ -260,8 +250,7 @@ class _RouterWidgetState extends State<RouterWidget> {
               tooltip: 'Logout',
               onPressed: _logout,
             ),
-          ],
-        ),
+          ],),
         drawer: AppDrawer(),
         body: _currentScreen,
       ),
@@ -292,7 +281,7 @@ class _RouterWidgetState extends State<RouterWidget> {
                 ),
                 const SizedBox(height: 15),
                 Text(
-                  userInfo.permission == 2 ? "Therapist" : "Admin",
+                  userInfo.permission == 2 ? "Therapist" : "Clinic",
                   style: GoogleFonts.jost(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,

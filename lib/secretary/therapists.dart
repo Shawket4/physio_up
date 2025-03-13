@@ -175,7 +175,9 @@ class TherapistCard extends StatelessWidget {
                 radius: 28,
                 backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                 child: Text(
-                  therapist.name.isNotEmpty ? therapist.name[0].toUpperCase() : '?',
+                therapist.name.isNotEmpty 
+    ? therapist.name.trim().split(' ').last[0].toUpperCase()
+    : '?',
                   style: GoogleFonts.jost(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/treatment_plan.dart';
@@ -70,9 +71,7 @@ class _CreateTreatmentScreenState extends State<CreateTreatmentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Add Treatment Package'),
-      ),
+      appBar: CustomAppBar(title: "Add Package", actions: []),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -127,7 +126,7 @@ class _CreateTreatmentScreenState extends State<CreateTreatmentScreen> {
                 onPressed: _addTreatment,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-                  child: Text('Add Treatment'),
+                  child: Text('Add Package'),
                 ),
               ),
             ],

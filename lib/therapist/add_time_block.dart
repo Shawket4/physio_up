@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/models/therapist.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
@@ -129,18 +130,7 @@ class _MultiSelectAppointmentScreenState extends State<MultiSelectAppointmentScr
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF2F5F9),
-      appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: const Color(0xFF011627),
-        title: Text(
-          "Block Time Slots",
-          style: GoogleFonts.jost(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        elevation: 0,
-      ),
+      appBar: CustomAppBar(title: "Block Time Slots", actions: []),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -160,7 +150,7 @@ class _MultiSelectAppointmentScreenState extends State<MultiSelectAppointmentScr
                       radius: 30,
                       backgroundColor: const Color(0xFF011627),
                       child: Text(
-                        widget.therapist.name.substring(0, 1),
+                        widget.therapist.name.trim().split(' ').last[0].toUpperCase(),
                         style: GoogleFonts.jost(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
