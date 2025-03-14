@@ -1,9 +1,13 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/referral.dart';
 import 'package:phsyio_up/screens/referral/create_referral_screen.dart';
+import 'package:phsyio_up/screens/referral/cubit/referral_cubit.dart';
 import 'package:phsyio_up/screens/referral/edit_referral_screen.dart';
 import 'package:phsyio_up/screens/referral/referral_packages_screen.dart';
 
@@ -15,147 +19,143 @@ class ReferralListScreen extends StatefulWidget {
 }
 
 class _ReferralListScreenState extends State<ReferralListScreen> {
-  late Future<List<Referral>> _referralsFuture;
-  bool _isRefreshing = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _referralsFuture = _fetchData();
-  }
-
-  Future<List<Referral>> _fetchData() async {
-    List<Referral> referrals = [];
-    try {
-      dynamic response = await getData("$ServerIP/api/protected/FetchReferrals");
-      referrals = (response as List<dynamic>?)?.map((e) => Referral.fromJson(e)).toList() ?? [];
-    } catch (e) {
-      print("Error fetching data: $e");
-    }
-    return referrals;
-  }
-
-  Future<void> _refreshData() async {
-    setState(() {
-      _isRefreshing = true;
-      _referralsFuture = _fetchData();
-    });
-    await _referralsFuture;
-    setState(() {
-      _isRefreshing = false;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context, 
-            MaterialPageRoute(builder: (_) => CreateReferralScreen())
-          ).then((_) => _refreshData());
-        },
-        icon: Icon(Icons.add),
-        label: Text('Add Referral'),
-        backgroundColor: Theme.of(context).primaryColor,
-      ),
-      body: RefreshIndicator(
-        onRefresh: _refreshData,
-        child: FutureBuilder<List<Referral>>(
-          future: _referralsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting && !_isRefreshing) {
-              return Center(
-                    child: Lottie.asset(
-                      "assets/lottie/Loading.json",
-                      height: 200,
-                      width: 200,
-                    ),
-                  );
-            } else if (snapshot.hasError) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline, size: 60, color: Colors.red),
-                    SizedBox(height: 16),
-                    Text('Error loading referrals', 
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
-                    TextButton(
-                      onPressed: _refreshData,
-                      child: Text('Try Again'),
-                    )
-                  ],
-                ),
-              );
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.people_alt_outlined, size: 80, color: Colors.grey[400]),
-                    SizedBox(height: 16),
-                    Text('No Referrals Found', 
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: Colors.grey[700])),
-                    SizedBox(height: 8),
-                    Text('Create a new referral to get started',
-                      style: TextStyle(fontSize: 16, color: Colors.grey[600])),
-                    SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context, 
-                          MaterialPageRoute(builder: (_) => CreateReferralScreen())
-                        ).then((_) => _refreshData());
-                      },
-                      icon: Icon(Icons.add),
-                      label: Text('Create Referral'),
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
-            
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: snapshot.data!.length,
-              itemBuilder: (context, index) {
-                final referral = snapshot.data![index];
-                return ReferralCard(
-                  referral: referral,
-                  onTap: () {
-                    Navigator.push(
-                      context, 
-                      MaterialPageRoute(builder: (_) => ReferralPackageScreen(referral: referral))
-                    );
-                  },
-                  onEdit: userInfo.permission >= 2 ? () async {
-                    await Navigator.push(
-                      context, 
-                      MaterialPageRoute(builder: (_) => EditReferralScreen(referral: referral))
-                    );
-                    _refreshData();
-                  } : null,
-                  onDelete: userInfo.permission >= 2 ? () => _showDeleteDialog(referral) : null,
-                );
+    return BlocProvider(
+      create: (context) => ReferralCubit()..initGet(),
+      child: BlocBuilder<ReferralCubit, ReferralState>(
+        builder: (context, state) {
+          ReferralCubit cubit = ReferralCubit.get(context);
+          return Scaffold(
+            floatingActionButton: FloatingActionButton.extended(
+              onPressed: () {
+                Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => CreateReferralScreen()))
+                    .then((_) => cubit.refreshData());
               },
-            );
-          },
-        ),
+              icon: Icon(Icons.add),
+              label: Text('Add Referral'),
+              backgroundColor: Theme.of(context).primaryColor,
+            ),
+            body: RefreshIndicator(
+              onRefresh: cubit.refreshData,
+              child: FutureBuilder<List<Referral>>(
+                future: cubit.referralsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting &&
+                      !cubit.isRefreshing) {
+                    return Center(
+                      child: Lottie.asset(
+                        "assets/lottie/Loading.json",
+                        height: 200,
+                        width: 200,
+                      ),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.error_outline,
+                              size: 60, color: Colors.red),
+                          SizedBox(height: 16),
+                          Text('Error loading referrals',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.w500)),
+                          TextButton(
+                            onPressed: cubit.refreshData,
+                            child: Text('Try Again'),
+                          )
+                        ],
+                      ),
+                    );
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.people_alt_outlined,
+                              size: 80, color: Colors.grey[400]),
+                          SizedBox(height: 16),
+                          Text('No Referrals Found',
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey[700])),
+                          SizedBox(height: 8),
+                          Text('Create a new referral to get started',
+                              style: TextStyle(
+                                  fontSize: 16, color: Colors.grey[600])),
+                          SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) =>
+                                              CreateReferralScreen()))
+                                  .then((_) => cubit.refreshData());
+                            },
+                            icon: Icon(Icons.add),
+                            label: Text('Create Referral'),
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      final referral = snapshot.data![index];
+                      return ReferralCard(
+                        referral: referral,
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => ReferralPackageScreen(
+                                      referral: referral)));
+                        },
+                        onEdit: userInfo.permission >= 2
+                            ? () async {
+                                await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => EditReferralScreen(
+                                            referral: referral)));
+                                cubit.refreshData();
+                              }
+                            : null,
+                        onDelete: userInfo.permission >= 2
+                            ? () => showDeleteDialog(referral, cubit)
+                            : null,
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  void _showDeleteDialog(Referral referral) {
+  void showDeleteDialog(Referral referral, ReferralCubit cubit) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Delete Referral'),
-        content: Text('Are you sure you want to delete ${referral.name}? This action cannot be undone.'),
+        content: Text(
+            'Are you sure you want to delete ${referral.name}? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -169,18 +169,19 @@ class _ReferralListScreenState extends State<ReferralListScreen> {
                   "$ServerIP/api/protected/DeleteReferral",
                   {"referral_id": referral.id},
                 );
-                
+
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text("Referral deleted successfully"),
                     backgroundColor: Colors.green,
                     behavior: SnackBarBehavior.floating,
                     margin: EdgeInsets.all(16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
                 );
-                
-                _refreshData();
+
+                cubit.refreshData();
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -188,7 +189,8 @@ class _ReferralListScreenState extends State<ReferralListScreen> {
                     backgroundColor: Colors.red,
                     behavior: SnackBarBehavior.floating,
                     margin: EdgeInsets.all(16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
                 );
                 print("Error deleting referral: $e");
@@ -254,15 +256,15 @@ class ReferralCard extends StatelessWidget {
                         if (onEdit != null)
                           IconButton(
                             icon: const Icon(Icons.edit_outlined),
-                         color: Theme.of(context).colorScheme.primary,
-                         tooltip: 'Edit patient',
+                            color: Theme.of(context).colorScheme.primary,
+                            tooltip: 'Edit patient',
                             onPressed: onEdit,
                           ),
                         if (onDelete != null)
                           IconButton(
                             icon: const Icon(Icons.delete_outline),
-                color: Colors.red.shade400,
-                tooltip: 'Delete patient',
+                            color: Colors.red.shade400,
+                            tooltip: 'Delete patient',
                             onPressed: onDelete,
                           ),
                       ],

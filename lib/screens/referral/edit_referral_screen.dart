@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/referral.dart';
+import 'package:phsyio_up/screens/referral/cubit/referral_cubit.dart';
 
 class EditReferralScreen extends StatefulWidget {
   final Referral referral;
@@ -13,108 +15,78 @@ class EditReferralScreen extends StatefulWidget {
 }
 
 class _EditReferralScreenState extends State<EditReferralScreen> {
-  final _formKey = GlobalKey<FormState>();
-
-  // Controllers for form fields
-  late TextEditingController _nameController;
-  late TextEditingController _cashbackPercentage;
-
   // Dropdown value for gender
 
   @override
-  void initState() {
-    super.initState();
-
-    // Initialize controllers (empty for create screen)
-    _nameController = TextEditingController(text: widget.referral.name);
-    _cashbackPercentage = TextEditingController(text: widget.referral.cashbackPercentage.toString());
-  }
-
-  @override
-  void dispose() {
-    // Dispose controllers to avoid memory leaks
-    _nameController.dispose();
-   _cashbackPercentage.dispose();
-    super.dispose();
-  }
-
-  Future<void> _editReferral() async {
-    if (_formKey.currentState!.validate()) {
-      // Create new patient object
-      final newReferral = Referral(
-        id: widget.referral.id, // ID will be assigned by the backend
-        name: _nameController.text,
-        cashbackPercentage: double.parse(_cashbackPercentage.text), treatmentPlans: null,
-      );
-
-      // Call the API to create the new patient
-      try {
-         await postData(
-          "$ServerIP/api/protected/EditReferral", // Replace with your API endpoint
-          newReferral.toJson(), // Convert patient object to JSON
-        );
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Referral Edited Successfully')),
-          );
-          Navigator.push(context, MaterialPageRoute(builder: (_) => MainWidget()));
-       
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error editing referral: $e')),
-        );
-      }
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar(title: "Edit Referral", actions: []),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-               TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(labelText: 'Name', prefixIcon: Icon(Icons.person), border: OutlineInputBorder()),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a name';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20,),
-              TextFormField(
-                controller: _cashbackPercentage,
-                decoration: const InputDecoration(
-    labelText: 'Cashback Percentage', prefixIcon: Icon(Icons.percent),
-    border: OutlineInputBorder(),
-  ),
-  keyboardType: TextInputType.number,
-  validator: (value) {
-    if (value != null && value.isNotEmpty) {
-      final discount = double.tryParse(value);
-      if (discount == null || discount < 1 || discount > 100) {
-        return "Enter a valid percentage (1-100)";
-      }
-    }
-    return null;
-  },
-              ),
-              const SizedBox(height: 20,),
-              ElevatedButton(
-                onPressed: _editReferral,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-                  child: Text('Edit Referral'),
+    return BlocProvider(
+      create: (context) => ReferralCubit()..initEdit(widget.referral),
+      child: BlocBuilder<ReferralCubit, ReferralState>(
+        builder: (context, state) {
+          ReferralCubit cubit = ReferralCubit.get(context);
+          return Scaffold(
+            appBar: CustomAppBar(title: "Edit Referral", actions: []),
+            body: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: cubit.editFormKey,
+                child: ListView(
+                  children: [
+                    TextFormField(
+                      controller: cubit.editNameController,
+                      decoration: InputDecoration(
+                          labelText: 'Name',
+                          prefixIcon: Icon(Icons.person),
+                          border: OutlineInputBorder()),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a name';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    TextFormField(
+                      controller: cubit.editCashbackPercentage,
+                      decoration: const InputDecoration(
+                        labelText: 'Cashback Percentage',
+                        prefixIcon: Icon(Icons.percent),
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value != null && value.isNotEmpty) {
+                          final discount = double.tryParse(value);
+                          if (discount == null ||
+                              discount < 1 ||
+                              discount > 100) {
+                            return "Enter a valid percentage (1-100)";
+                          }
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    ElevatedButton(
+                      onPressed:(){
+                        cubit.editReferral(widget.referral, context);
+                      } ,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10.0, vertical: 10.0),
+                        child: Text('Edit Referral'),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }

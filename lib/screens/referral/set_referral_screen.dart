@@ -251,4 +251,3 @@ Future<String> _fetchReferrals() async {
   }
 }
 
-

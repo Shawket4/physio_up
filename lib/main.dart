@@ -1,4 +1,4 @@
-// ignore_for_file: unused_local_variable, non_constant_identifier_names, constant_identifier_names, unused_import
+// ignore_for_file: unused_local_variable, non_constant_identifier_names, constant_identifier_names, unused_import, deprecated_member_use
 import 'dart:io';
 
 import 'package:phsyio_up/dio_helper.dart';
