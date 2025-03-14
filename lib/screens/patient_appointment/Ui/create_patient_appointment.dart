@@ -8,7 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
-import 'package:phsyio_up/screens/patient/create_patient_appointment_cubit/create_patient_appointment_cubit.dart';
+import 'package:phsyio_up/screens/patient_appointment/create_patient_appointment_cubit/create_patient_appointment_cubit.dart';
 
 class MakeAppointmentScreen extends StatefulWidget {
   final int patientID;

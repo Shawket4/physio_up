@@ -37,6 +37,73 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
 
   // Fetch data from the API
 
+  Widget _buildEmptyState(String message) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Lottie animation for empty state
+        Lottie.asset(
+          fit: BoxFit.fill,
+          "assets/lottie/Calendar.json",
+          height: 180,
+          width: 365.4,
+          repeat: true,
+        ),
+        const SizedBox(height: 20),
+        Text(
+          message,
+          style: TextStyle(
+            fontSize: 18,
+            color: Colors.grey.shade700,
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          "Check back later for new requests",
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey.shade500,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 24),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.blue.shade50,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.blue.shade200),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.lightbulb_outline,
+                size: 20,
+                color: Colors.blue.shade700,
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  "Your availability is automatically synced with the system",
+                  style: TextStyle(
+                    color: Colors.blue.shade700,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -138,28 +205,8 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
                                   ],
                                 ),
                               ),
-                            state.requests.isEmpty 
-                                ? Padding(
-                                    padding: const EdgeInsets.all(40),
-                                    child: Column(
-                                      children: [
-                                        Icon(
-                                          Icons.event_busy,
-                                          size: 64,
-                                          color: Colors.grey.shade400,
-                                        ),
-                                        SizedBox(height: 16),
-                                        Text(
-                                          "No appointment requests found",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.grey.shade600,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  )
+                           state.requests.isEmpty 
+    ? _buildEmptyState("You have no pending appointment requests")
                                 : ListView.builder(
                                     shrinkWrap: true,
                                     physics:
@@ -350,27 +397,7 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
                                 ),
                               ),
                             state.appointments.isEmpty
-                                ? Padding(
-                                    padding: const EdgeInsets.all(40),
-                                    child: Column(
-                                      children: [
-                                        Icon(
-                                          Icons.event_busy,
-                                          size: 64,
-                                          color: Colors.grey.shade400,
-                                        ),
-                                        SizedBox(height: 16),
-                                        Text(
-                                          "No upcoming appointments found",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.grey.shade600,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  )
+    ? _buildEmptyState("You have no upcoming appointments")
                                 : ListView.builder(
                                     shrinkWrap: true,
                                     physics:
