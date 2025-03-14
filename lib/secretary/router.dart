@@ -288,7 +288,7 @@ class _RouterWidgetState extends State<RouterWidget> {
                 ),
                 const SizedBox(height: 15),
                 Text(
-                  userInfo.permission == 2 ? "Therapist" : "Clinic",
+                  userInfo.permission == 2 ? "Dr. ${userInfo.username}" : "Clinic",
                   style: GoogleFonts.jost(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,

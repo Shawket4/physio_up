@@ -38,7 +38,7 @@ class _TherapistListScreenState extends State<TherapistListScreen> {
   Future<List<Therapist>> _fetchData() async {
     List<Therapist> therapists = [];
     try {
-      dynamic response = await getData("$ServerIP/api/GetTherapists");
+      dynamic response = await getData("$ServerIP/api/protected/GetTherapists");
       therapists = parseTherapists(response);
     } catch (e) {
       print("Error fetching data: $e");

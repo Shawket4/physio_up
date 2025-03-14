@@ -24,7 +24,7 @@ class CreatePatientAppointmentCubit extends Cubit<CreatePatientAppointmentState>
       return "";
     }
     emit(loadTherapistsLoading());
-    var response = await getData("$ServerIP/api/GetTherapists");
+    var response = await getData("$ServerIP/api/protected/GetTherapists");
     therapists = response;
     if (therapists.isNotEmpty) {
       selectedTherapist = therapists[0];

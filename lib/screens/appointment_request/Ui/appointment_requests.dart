@@ -390,7 +390,7 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
                                 ),
                               ),
                             state.appointments.isEmpty
-    ? _buildEmptyState("You have no upcoming appointments", "The appointments are automatically synced")
+    ? _buildEmptyState("You have no unconfirmed appointments", "The appointments are automatically synced")
                                 : ListView.builder(
                                     shrinkWrap: true,
                                     physics:

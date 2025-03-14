@@ -46,8 +46,7 @@ void main() async {
   runApp(const MainWidget());
 }
 
-
-dynamic whatsappLogin;
+bool isWhatsappLoggedIn = false;
 
 
 final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
@@ -61,6 +60,19 @@ Future<bool> isConnected() async {
     return false;
   }
 }
+
+Future<void> _checkWhatsAppLogin() async {
+  try {
+     dynamic whatsappLogin = await getData("$ServerIP/api/protected/CheckWhatsAppLogin");
+    print(whatsappLogin.toString());
+    if (whatsappLogin["message"] == "Logged In") {
+      isWhatsappLoggedIn = true;
+    }
+  } catch (e) {
+
+  }
+}
+
 
 Future<String> get _getJwt async {
   
@@ -87,12 +99,7 @@ Future<String> get _getJwt async {
     userInfo.ID = response["data"]["ID"];
     userInfo.permission = response["data"]["permission"];
     userInfo.clinicName = response["data"]["clinic_name"];
-    whatsappLogin = await getData("$ServerIP/api/protected/CheckWhatsAppLogin");
-    print(whatsappLogin.toString());
-    if (whatsappLogin["message"] != "Logged In") {
-      print("object");
-     
-    }
+    await _checkWhatsAppLogin();
   } catch (e) {
     print(e);
     Logout;
@@ -197,7 +204,7 @@ class _MainWidgetState extends State<MainWidget> {
                 );
               } else if (snapshot.data != "Offline") {
                 if (jwt != "") {
-                  if (whatsappLogin["message"] == "Logged In") {
+                  if (isWhatsappLoggedIn) {
                     return RouterWidget();
                   }
                    return WhatsAppQRCode();
