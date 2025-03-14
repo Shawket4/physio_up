@@ -11,3 +11,8 @@ final class RefreshDataSuccess extends ReferralState {
   final List<Referral> referrals;
   RefreshDataSuccess(this.referrals);
 }
+
+final class SetReferral extends ReferralState {
+  final Referral referral;
+  SetReferral(this.referral);
+}
