@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phsyio_up/components/app_bar.dart';
-import 'package:phsyio_up/dio_helper.dart';
-import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/referral.dart';
 import 'package:phsyio_up/screens/referral/cubit/referral_cubit.dart';
 

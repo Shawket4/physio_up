@@ -37,20 +37,22 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
 
   // Fetch data from the API
 
-  Widget _buildEmptyState(String message) {
+  Widget _buildEmptyState(String message, message2) {
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // Lottie animation for empty state
+        message == "You have no pending appointment requests" ?
         Lottie.asset(
-          fit: BoxFit.fill,
+          // fit: BoxFit.fill,
           "assets/lottie/Calendar.json",
           height: 180,
           width: 365.4,
           repeat: true,
-        ),
+        ) : Container(),
         const SizedBox(height: 20),
         Text(
           message,
@@ -58,15 +60,6 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
             fontSize: 18,
             color: Colors.grey.shade700,
             fontWeight: FontWeight.w600,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 12),
-        Text(
-          "Check back later for new requests",
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey.shade500,
           ),
           textAlign: TextAlign.center,
         ),
@@ -89,7 +82,7 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
-                  "Your availability is automatically synced with the system",
+                  message2,
                   style: TextStyle(
                     color: Colors.blue.shade700,
                     fontWeight: FontWeight.w500,
@@ -206,7 +199,7 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
                                 ),
                               ),
                            state.requests.isEmpty 
-    ? _buildEmptyState("You have no pending appointment requests")
+    ? _buildEmptyState("You have no pending appointment requests", "The requests are automatically synced")
                                 : ListView.builder(
                                     shrinkWrap: true,
                                     physics:
@@ -397,7 +390,7 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
                                 ),
                               ),
                             state.appointments.isEmpty
-    ? _buildEmptyState("You have no upcoming appointments")
+    ? _buildEmptyState("You have no upcoming appointments", "The appointments are automatically synced")
                                 : ListView.builder(
                                     shrinkWrap: true,
                                     physics:
