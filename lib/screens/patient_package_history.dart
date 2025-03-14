@@ -5,7 +5,7 @@ import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/treatment_plan.dart';
 import 'package:phsyio_up/screens/patient_package_appointments.dart';
-import 'package:phsyio_up/screens/referral/set_referral_screen.dart';
+import 'package:phsyio_up/screens/referral/Ui/set_referral_screen.dart';
 
 class PatientPackageHistoryScreen extends StatefulWidget {
   final int PatientID;

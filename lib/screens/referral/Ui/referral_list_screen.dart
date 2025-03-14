@@ -6,10 +6,10 @@ import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/referral.dart';
-import 'package:phsyio_up/screens/referral/create_referral_screen.dart';
+import 'package:phsyio_up/screens/referral/Ui/create_referral_screen.dart';
 import 'package:phsyio_up/screens/referral/cubit/referral_cubit.dart';
-import 'package:phsyio_up/screens/referral/edit_referral_screen.dart';
-import 'package:phsyio_up/screens/referral/referral_packages_screen.dart';
+import 'package:phsyio_up/screens/referral/Ui/edit_referral_screen.dart';
+import 'package:phsyio_up/screens/referral/Ui/referral_packages_screen.dart';
 
 class ReferralListScreen extends StatefulWidget {
   const ReferralListScreen({super.key});

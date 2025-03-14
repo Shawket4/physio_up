@@ -3,8 +3,8 @@ import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/treatment_plan.dart';
-import 'package:phsyio_up/screens/treatment_packages/create_treatment_screen.dart';
-import 'package:phsyio_up/screens/treatment_packages/edit_treatment_screen.dart';
+import 'package:phsyio_up/screens/treatment_packages/Ui/create_treatment_screen.dart';
+import 'package:phsyio_up/screens/treatment_packages/Ui/edit_treatment_screen.dart';
 
 class TreatmentListScreen extends StatefulWidget {
   const TreatmentListScreen({super.key});
