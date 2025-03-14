@@ -4,9 +4,9 @@ import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/patient.dart';
-import 'package:phsyio_up/screens/create_patient.dart';
-import 'package:phsyio_up/screens/edit_patient_info.dart';
-import 'package:phsyio_up/screens/patient_detail_screen.dart';
+import 'package:phsyio_up/screens/patient/Ui/create_patient.dart';
+import 'package:phsyio_up/screens/patient/Ui/edit_patient_info.dart';
+import 'package:phsyio_up/screens/patient/Ui/patient_detail_screen.dart';
 
 class PatientListScreen extends StatefulWidget {
   const PatientListScreen({super.key});

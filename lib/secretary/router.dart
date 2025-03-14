@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
-import 'package:phsyio_up/screens/patients.dart';
+import 'package:phsyio_up/screens/patient/Ui/patients.dart';
 import 'package:phsyio_up/screens/referral/Ui/referral_list_screen.dart';
 import 'package:phsyio_up/screens/treatment_packages/Ui/treatment_list_screen.dart';
 import 'package:phsyio_up/screens/appointment_request/Ui/appointment_requests.dart';
