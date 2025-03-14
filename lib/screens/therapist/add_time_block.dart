@@ -6,12 +6,12 @@ import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/models/therapist.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
-import 'package:phsyio_up/secretary/router.dart';
+import 'package:phsyio_up/screens/secretary/router.dart';
 
 class MultiSelectAppointmentScreen extends StatefulWidget {
   final Therapist therapist;
-  
-  const MultiSelectAppointmentScreen({super.key, required this.therapist});
+  final DateTime focusedDay; 
+  const MultiSelectAppointmentScreen({super.key, required this.therapist, required this.focusedDay});
 
   @override
   State<MultiSelectAppointmentScreen> createState() => _MultiSelectAppointmentScreenState();
@@ -20,10 +20,11 @@ class MultiSelectAppointmentScreen extends StatefulWidget {
 class _MultiSelectAppointmentScreenState extends State<MultiSelectAppointmentScreen> {
   List<TimeBlock> timeBlocks = [];
   List<DateTime> selectedTimeBlocks = [];
-  DateTime selectedDate = DateTime.now();
+  late DateTime selectedDate;
 
   @override
   void initState() {
+    selectedDate = widget.focusedDay;
     super.initState();
     loadBlocks();
     markBookedBlocks();

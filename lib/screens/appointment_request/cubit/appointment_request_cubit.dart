@@ -7,7 +7,7 @@ import 'dart:typed_data';
 import 'package:phsyio_up/models/appointment_request.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:phsyio_up/models/therapist.dart';
-import 'package:phsyio_up/secretary/accept_appointment.dart';
+import 'package:phsyio_up/screens/secretary/accept_appointment.dart';
 import 'dart:convert';
 part 'appointment_request_state.dart';
 

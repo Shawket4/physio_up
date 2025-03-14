@@ -4,7 +4,7 @@ import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
-import 'package:phsyio_up/secretary/router.dart';
+import 'package:phsyio_up/screens/secretary/router.dart';
 
 class WhatsAppQRCode extends StatefulWidget {
   const WhatsAppQRCode({super.key});

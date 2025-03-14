@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/main.dart';
-import 'package:phsyio_up/therapist/add_time_block.dart';
+import 'package:phsyio_up/screens/therapist/add_time_block.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:phsyio_up/models/therapist.dart';
@@ -17,10 +17,39 @@ DateTime today = DateTime.now();
 late Therapist therapist;
 class _TherapistScheduleScreenState extends State<TherapistScheduleScreen> {
   DateTime _selectedDay = DateTime(today.year, today.month, today.day);
+  DateTime _focusedDay = DateTime(today.year, today.month, today.day);
   Map<DateTime, List<TimeBlock>> _bookedSlots = {};
+  
+  // Track first and last visible days
+  late DateTime _firstVisibleDay;
+  late DateTime _lastVisibleDay;
+
+  @override
+  void initState() {
+    super.initState();
+    _calculateVisibleDays();
+  }
+  
+  void _calculateVisibleDays() {
+    // Calculate visible range based on the focused day
+    // This will depend on the calendar format (month, week, etc.)
+    final DateTime firstDay = DateTime(_focusedDay.year, _focusedDay.month, 1);
+    final DateTime lastDay = DateTime(_focusedDay.year, _focusedDay.month + 1, 0);
+    
+    setState(() {
+      _firstVisibleDay = firstDay;
+      _lastVisibleDay = lastDay;
+    });
+  }
 
   Future<Therapist> _fetchTherapist() async {
-    dynamic response = await getData("$ServerIP/api/protected/GetTherapistSchedule");
+    // Now also passing the visible date range to the API
+    dynamic response = await postData(
+      "$ServerIP/api/protected/GetTherapistSchedule", {
+        "start_date": DateFormat("yyyy/MM/dd").format(_firstVisibleDay),
+        "end_date": DateFormat("yyyy/MM/dd").format(_lastVisibleDay)
+      }
+    );
     therapist = parseTherapist(response);
     _processBookedSlots(therapist);
     return therapist;
@@ -38,7 +67,7 @@ class _TherapistScheduleScreenState extends State<TherapistScheduleScreen> {
         print("Error parsing date: ${block.date} - $e");
       }
     }
-      _bookedSlots = bookedSlots;
+    _bookedSlots = bookedSlots;
   }
 
   @override
@@ -50,7 +79,7 @@ class _TherapistScheduleScreenState extends State<TherapistScheduleScreen> {
         Navigator.push(
           context, 
           MaterialPageRoute(
-            builder: (_) => MultiSelectAppointmentScreen(therapist: therapist)
+            builder: (_) => MultiSelectAppointmentScreen(therapist: therapist, focusedDay: _focusedDay)
           )
         );
       },
@@ -119,7 +148,6 @@ class _TherapistScheduleScreenState extends State<TherapistScheduleScreen> {
         
         return Column(
           children: [
-            
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -134,12 +162,24 @@ class _TherapistScheduleScreenState extends State<TherapistScheduleScreen> {
               child: TableCalendar(
                 firstDay: DateTime.now().subtract(const Duration(days: 365)),
                 lastDay: DateTime.now().add(const Duration(days: 365)),
-                focusedDay: _selectedDay,
+                focusedDay: _focusedDay,
                 selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                onDaySelected: (selectedDay, focusedDay) {
+               onDaySelected: (selectedDay, focusedDay) {
+    // Check if the selected day is within the current month
+    if (selectedDay.month == _focusedDay.month) {
+      setState(() {
+        _selectedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+        _focusedDay = focusedDay;
+      });
+    }
+  },
+                onPageChanged: (focusedDay) {
                   setState(() {
-                    _selectedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+                    _focusedDay = focusedDay;
                   });
+                  _calculateVisibleDays();
+                  // Refetch data when calendar page changes
+                  setState(() {}); // Trigger rebuild to call _fetchTherapist again
                 },
                 eventLoader: (day) => _bookedSlots[DateTime(day.year, day.month, day.day)] ?? [],
                 calendarStyle: CalendarStyle(
@@ -170,21 +210,45 @@ class _TherapistScheduleScreenState extends State<TherapistScheduleScreen> {
             ),
             Padding(
               padding: const EdgeInsets.all(12.0),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.event_note,
-                    color: Colors.blue.shade800,
-                    size: 20,
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.date_range,
+                        color: Colors.blue.shade800,
+                        size: 20,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        "Viewing: ${DateFormat('MMM d').format(_firstVisibleDay)} - ${DateFormat('MMM d, yyyy').format(_lastVisibleDay)}",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.blue.shade600,
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(width: 8),
-                  Text(
-                    "Appointments for ${DateFormat('MMMM d, yyyy').format(_selectedDay)}",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue.shade800,
-                    ),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.event_note,
+                        color: Colors.blue.shade800,
+                        size: 20,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        "Appointments for ${DateFormat('MMMM d, yyyy').format(_selectedDay)}",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade800,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

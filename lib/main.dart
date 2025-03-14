@@ -11,7 +11,7 @@ import 'package:material_color_generator/material_color_generator.dart';
 import 'package:phsyio_up/screens/whatsappqrcode.dart';
 import 'package:phsyio_up/screens/appointment_request/Ui/appointment_requests.dart';
 import 'package:phsyio_up/screens/login/Ui/login_screen.dart';
-import 'package:phsyio_up/secretary/router.dart';
+import 'package:phsyio_up/screens/secretary/router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lottie/lottie.dart';
 
@@ -35,8 +35,8 @@ extension HexColor on Color {
 }
 
 // const String ServerIP = "https://dentex.app";
-const String ServerIP = "https://physioup.ddns.net:3005";
-// const String ServerIP = "http://localhost:3005";
+// const String ServerIP = "https://physioup.ddns.net:3005";
+const String ServerIP = "http://localhost:3005";
 
 
 
