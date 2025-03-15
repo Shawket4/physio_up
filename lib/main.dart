@@ -35,8 +35,8 @@ extension HexColor on Color {
 }
 
 // const String ServerIP = "https://dentex.app";
-// const String ServerIP = "https://physioup.ddns.net:3005";
-const String ServerIP = "http://localhost:3005";
+const String ServerIP = "https://physioup.ddns.net:3005";
+//const String ServerIP = "http://localhost:3005";
 
 
 

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:meta/meta.dart';
 import 'package:phsyio_up/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/patient.dart';
-part 'create_patient_state.dart';
+part 'edit_patient_state.dart';
 
-class CreatePatientCubit extends Cubit<CreatePatientState> {
-  CreatePatientCubit() : super(CreatePatientInitial());
-  static CreatePatientCubit get(context) => BlocProvider.of(context);
+class EditPatientCubit extends Cubit<EditPatientState> {
+  EditPatientCubit() : super(EditPatientInitial());
+  static EditPatientCubit get(context) => BlocProvider.of(context);
 
   final formKey = GlobalKey<FormState>();
   bool isLoading = false;
@@ -24,16 +25,23 @@ class CreatePatientCubit extends Cubit<CreatePatientState> {
   // Dropdown value for gender
   String gender = 'Male';
 
-  void init() {
-    nameController = TextEditingController();
-    phoneController = TextEditingController();
-    ageController = TextEditingController(text: "0");
-    weightController = TextEditingController(text: "0");
-    heightController = TextEditingController(text: "0");
-    diagnosisController = TextEditingController();
-    notesController = TextEditingController();
+  void init(Patient patient) {
+    // Initialize controllers with patient data
+    nameController = TextEditingController(text: patient.name);
+    phoneController = TextEditingController(text: patient.phone);
+    ageController = TextEditingController(text: patient.age.toString());
+    weightController = TextEditingController(text: patient.weight.toString());
+    heightController = TextEditingController(text: patient.height.toString());
+    diagnosisController = TextEditingController(text: patient.diagnosis);
+    notesController = TextEditingController(text: patient.notes);
+
+    // Set initial gender value
+    if (patient.gender != "") {
+      gender = patient.gender;
+    }
   }
 
+  // Validate phone number format
   String? validatePhone(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter a phone number';
@@ -61,55 +69,63 @@ class CreatePatientCubit extends Cubit<CreatePatientState> {
     return null;
   }
 
-  Future<void> createPatient(BuildContext context) async {
+  Future<void> savePatient(Patient patient, BuildContext context) async {
     if (formKey.currentState!.validate()) {
       isLoading = true;
-      emit(CreatePatientLoading());
-      // Create new patient object - keeping the same structure as before
-      final newPatient = Patient(
-        id: 0, // ID will be assigned by the backend
+      emit(SavePatientLoading());
+
+      // Create updated patient object - keeping the same structure as before
+      final updatedPatient = Patient(
+        id: patient.id,
         name: nameController.text,
         phone: phoneController.text,
         gender: gender,
         age: int.parse(ageController.text),
         weight: double.parse(weightController.text),
         height: double.parse(heightController.text),
-        history: [], // Empty history for new patient
-        requests: [], // Empty requests for new patient
-        otp: "", // Empty OTP for new patient
-        isVerified: false, // Default to false for new patient
+        history: patient.history,
+        requests: patient.requests,
+        otp: patient.otp,
+        isVerified: patient.isVerified,
         diagnosis: diagnosisController.text,
         notes: notesController.text,
       );
 
-      // Call the API to create the new patient - same API endpoint and format
+      // Call the API to save the updated patient data - same API endpoint and format
       try {
         await postData(
-          "$ServerIP/api/protected/CreatePatient",
-          newPatient.toJson(),
+          "$ServerIP/api/protected/UpdatePatient",
+          updatedPatient.toJson(),
         );
 
         // Show success message and navigate
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Patient created successfully'),
+            content: Text('Patient updated successfully'),
             backgroundColor: Colors.green,
           ),
         );
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => MainWidget()));
+          context,
+          MaterialPageRoute(builder: (_) => MainWidget()),
+        );
       } catch (e) {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error creating patient: $e'),
+            content: Text('Error updating patient: $e'),
             backgroundColor: Colors.red,
           ),
         );
       } finally {
         isLoading = false;
-        emit(CreatePatientSuccess());
+        emit(SavePatientSuccess());
       }
     }
+  }
+
+  void setGender(String value) {
+    gender = value;
+    emit(SetGender());
   }
 }

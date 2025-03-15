@@ -3,27 +3,28 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/components/app_bar.dart';
-import 'package:phsyio_up/screens/create_patient/create_pateint_cubit/create_patient_cubit.dart';
+import 'package:phsyio_up/models/patient.dart';
+import 'package:phsyio_up/screens/edit_patient/cubit/edit_patient_cubit.dart';
 
-class CreatePatientScreen extends StatefulWidget {
-  const CreatePatientScreen({super.key});
+class PatientEditScreen extends StatefulWidget {
+  final Patient patient;
+
+  const PatientEditScreen({super.key, required this.patient});
 
   @override
-  _CreatePatientScreenState createState() => _CreatePatientScreenState();
+  _PatientEditScreenState createState() => _PatientEditScreenState();
 }
 
-class _CreatePatientScreenState extends State<CreatePatientScreen> {
-  // Validate phone number format
-
+class _PatientEditScreenState extends State<PatientEditScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => CreatePatientCubit()..init(),
-      child: BlocBuilder<CreatePatientCubit, CreatePatientState>(
+      create: (context) => EditPatientCubit()..init(widget.patient),
+      child: BlocBuilder<EditPatientCubit, EditPatientState>(
         builder: (context, state) {
-          CreatePatientCubit cubit = CreatePatientCubit.get(context);
+          EditPatientCubit cubit = EditPatientCubit.get(context);
           return Scaffold(
-            appBar: CustomAppBar(title: "Create Patient Profile", actions: []),
+            appBar: CustomAppBar(title: "Edit Patient Profile", actions: []),
             body: cubit.isLoading
                 ? Center(
                     child: Lottie.asset(
@@ -100,9 +101,13 @@ class _CreatePatientScreenState extends State<CreatePatientScreen> {
                                 );
                               }).toList(),
                               onChanged: (value) {
-                                setState(() {
-                                  cubit.gender = value!;
-                                });
+                               cubit.setGender(value!);
+                              },
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please select a gender';
+                                }
+                                return null;
                               },
                             ),
                             const SizedBox(height: 16),
@@ -155,8 +160,7 @@ class _CreatePatientScreenState extends State<CreatePatientScreen> {
                                           RegExp(r'^\d*\.?\d*$')),
                                     ],
                                     validator: (value) =>
-                                        cubit.validatePositiveNumber(
-                                            value, 'weight'),
+                                        cubit.validatePositiveNumber(value, 'weight'),
                                   ),
                                 ),
                                 const SizedBox(width: 16),
@@ -177,8 +181,7 @@ class _CreatePatientScreenState extends State<CreatePatientScreen> {
                                           RegExp(r'^\d*\.?\d*$')),
                                     ],
                                     validator: (value) =>
-                                        cubit.validatePositiveNumber(
-                                            value, 'height'),
+                                        cubit.validatePositiveNumber(value, 'height'),
                                   ),
                                 ),
                               ],
@@ -219,15 +222,17 @@ class _CreatePatientScreenState extends State<CreatePatientScreen> {
                               ),
                               maxLines: 3,
                             ),
+
                             const SizedBox(height: 30),
+
                             // Submit button
                             ElevatedButton.icon(
-                              onPressed: () {
-                                cubit.createPatient(context);
+                              onPressed:(){
+                                cubit.savePatient(widget.patient, context);
                               },
                               icon: const Icon(Icons.save),
                               label: const Text(
-                                'Create Patient',
+                                'Save Changes',
                                 style: TextStyle(fontSize: 16),
                               ),
                               style: ElevatedButton.styleFrom(
@@ -235,7 +240,6 @@ class _CreatePatientScreenState extends State<CreatePatientScreen> {
                                     const EdgeInsets.symmetric(vertical: 15),
                               ),
                             ),
-
                             const SizedBox(height: 20),
                           ],
                         ),

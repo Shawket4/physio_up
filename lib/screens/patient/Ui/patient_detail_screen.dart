@@ -6,7 +6,7 @@ import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/patient.dart';
 import 'package:phsyio_up/models/treatment_plan.dart';
 import 'package:phsyio_up/screens/patient_appointment/Ui/create_patient_appointment.dart';
-import 'package:phsyio_up/screens/patient/Ui/edit_patient_info.dart';
+import 'package:phsyio_up/screens/edit_patient/Ui/edit_patient_info.dart';
 import 'package:phsyio_up/screens/patient/Ui/patient_package_history.dart';
 import 'package:phsyio_up/screens/patient_records/Ui/patient_records_folder.dart';
 
