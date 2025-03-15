@@ -36,7 +36,7 @@ class _PatientPackageHistoryScreenState extends State<PatientPackageHistoryScree
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: "Treatment Packages", actions: []),
+      appBar: CustomAppBar(title: "Packages", actions: []),
       
       body: FutureBuilder(
         future: _fetchPatientPackageHistory(),
