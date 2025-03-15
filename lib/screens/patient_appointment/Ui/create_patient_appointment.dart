@@ -212,16 +212,15 @@ class MakeAppointmentScreenState extends State<MakeAppointmentScreen> {
                               itemBuilder: (context, index) {
                                 List<dynamic> availableTherapists =
                                     cubit.therapists.where((therapist) {
-                                  var bookedTimes = therapist["schedule"]
-                                          ["time_blocks"] ??
-                                      [];
+                                  var bookedTimes = therapist.schedule!
+                                       .timeBlocks;
                                   DateTime selectedTime =
                                       cubit.timeBlocks[index].dateTime!;
 
                                   bool isBooked = bookedTimes.any((block) {
                                     DateTime bookedTime =
                                         intl.DateFormat("yyyy/MM/dd & h:mm a")
-                                            .parse(block["date"]);
+                                            .parse(block.date);
                                     return bookedTime == selectedTime;
                                   });
 

@@ -16,7 +16,7 @@ class CreatePatientAppointmentCubit extends Cubit<CreatePatientAppointmentState>
   TimeBlock? selectedTimeBlock;
   DateTime selectedDate = DateTime.now();
   DateTime currentDate = DateTime.now();
-  List<dynamic> therapists = [];
+  List<Therapist> therapists = [];
   dynamic selectedTherapist;
 
   Future<String> loadTherapists() async {
@@ -31,7 +31,7 @@ class CreatePatientAppointmentCubit extends Cubit<CreatePatientAppointmentState>
       loadSchedule(
           selectedTherapist['ID'],
           therapists.firstWhere(
-              (therapist) => therapist["ID"] == selectedTherapist['ID']));
+              (therapist) => therapist.id == selectedTherapist.id));
     }
     emit(loadTherapistsSuccess(therapists));
     isWorkingHoursLoaded = true;

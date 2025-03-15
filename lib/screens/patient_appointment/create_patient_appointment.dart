@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/components/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
+import 'package:phsyio_up/models/therapist.dart';
 import 'package:phsyio_up/screens/patient_appointment/cubit/create_patient_appointment_cubit.dart';
 
 class MakeAppointmentScreen extends StatefulWidget {
@@ -210,18 +211,18 @@ class MakeAppointmentScreenState extends State<MakeAppointmentScreen> {
                                 mainAxisSpacing: 10,
                               ),
                               itemBuilder: (context, index) {
-                                List<dynamic> availableTherapists =
+                                List<Therapist> availableTherapists =
                                     cubit.therapists.where((therapist) {
-                                  var bookedTimes = therapist["schedule"]
-                                          ["time_blocks"] ??
-                                      [];
+                                  var bookedTimes = therapist.schedule!
+                                          .timeBlocks 
+                                      ;
                                   DateTime selectedTime =
                                       cubit.timeBlocks[index].dateTime!;
 
                                   bool isBooked = bookedTimes.any((block) {
                                     DateTime bookedTime =
                                         intl.DateFormat("yyyy/MM/dd & h:mm a")
-                                            .parse(block["date"]);
+                                            .parse(block.date);
                                     return bookedTime == selectedTime;
                                   });
 
@@ -265,7 +266,7 @@ class MakeAppointmentScreenState extends State<MakeAppointmentScreen> {
                                                           backgroundColor:
                                                               Color(0xFF011627),
                                                           child: Text(
-                                                            therapist["name"]
+                                                            therapist.name
                                                                 .split(' ')
                                                                 .last[0]
                                                                 .toUpperCase(),
@@ -280,7 +281,7 @@ class MakeAppointmentScreenState extends State<MakeAppointmentScreen> {
                                                           ),
                                                         ),
                                                         title: Text(
-                                                          therapist["name"],
+                                                          therapist.name,
                                                           style:
                                                               GoogleFonts.jost(
                                                                   fontWeight:
