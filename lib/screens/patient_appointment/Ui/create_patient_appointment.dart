@@ -73,7 +73,7 @@ class MakeAppointmentScreenState extends State<MakeAppointmentScreen> {
                                         backgroundColor:
                                             const Color(0xFF011627),
                                         child: Text(
-                                          cubit.selectedTherapist["name"]
+                                          cubit.selectedTherapist!.name
                                               .split(' ')
                                               .last[0]
                                               .toUpperCase(),
@@ -91,7 +91,7 @@ class MakeAppointmentScreenState extends State<MakeAppointmentScreen> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              cubit.selectedTherapist["name"],
+                                              cubit.selectedTherapist!.name,
                                               style: GoogleFonts.jost(
                                                 fontSize: 20,
                                                 fontWeight: FontWeight.bold,
@@ -264,7 +264,7 @@ class MakeAppointmentScreenState extends State<MakeAppointmentScreen> {
                                                           backgroundColor:
                                                               Color(0xFF011627),
                                                           child: Text(
-                                                            therapist["name"]
+                                                            therapist.name
                                                                 .split(' ')
                                                                 .last[0]
                                                                 .toUpperCase(),
@@ -279,7 +279,7 @@ class MakeAppointmentScreenState extends State<MakeAppointmentScreen> {
                                                           ),
                                                         ),
                                                         title: Text(
-                                                          therapist["name"],
+                                                          therapist.name,
                                                           style:
                                                               GoogleFonts.jost(
                                                                   fontWeight:
@@ -377,7 +377,7 @@ class MakeAppointmentScreenState extends State<MakeAppointmentScreen> {
                                 "date_time":
                                     intl.DateFormat("yyyy/MM/dd & h:mm a")
                                         .format(finalDateTime),
-                                "therapist_id": cubit.selectedTherapist['ID'],
+                                "therapist_id": cubit.selectedTherapist!.id,
                                 "patient_id": widget.patientID,
                               };
                               var response = await postData(

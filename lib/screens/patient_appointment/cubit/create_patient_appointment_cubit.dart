@@ -17,7 +17,7 @@ class CreatePatientAppointmentCubit extends Cubit<CreatePatientAppointmentState>
   DateTime selectedDate = DateTime.now();
   DateTime currentDate = DateTime.now();
   List<Therapist> therapists = [];
-  dynamic selectedTherapist;
+  Therapist ? selectedTherapist;
 
   Future<String> loadTherapists() async {
     if (isWorkingHoursLoaded) {
@@ -25,28 +25,36 @@ class CreatePatientAppointmentCubit extends Cubit<CreatePatientAppointmentState>
     }
     emit(loadTherapistsLoading());
     var response = await getData("$ServerIP/api/protected/GetTherapists");
-    therapists = response;
-    if (therapists.isNotEmpty) {
-      selectedTherapist = therapists[0];
-      loadSchedule(
-          selectedTherapist['ID'],
-          therapists.firstWhere(
-              (therapist) => therapist.id == selectedTherapist.id));
+    if (response != null && response is List) {
+      therapists = response
+          .map<Therapist>((therapistJson) => Therapist.fromJson(therapistJson))
+          .toList();
+      if (therapists.isNotEmpty) {
+        selectedTherapist = therapists[0];
+        loadSchedule(
+            selectedTherapist!.id,
+            selectedTherapist!);
+      }
+      emit(loadTherapistsSuccess(therapists));
+      isWorkingHoursLoaded = true;
+      return "";
+    } else {
+      // Handle the case where the response is not a valid list.
+      emit(loadTherapistsFailed("Invalid response from server"));
+      isWorkingHoursLoaded = true;
+      return "";
     }
-    emit(loadTherapistsSuccess(therapists));
-    isWorkingHoursLoaded = true;
-    return "";
   }
 
-  Future<void> loadSchedule(int therapistId, dynamic therapist) async {
+  Future<void> loadSchedule(int therapistId, Therapist therapist) async {
     emit(loadScheduleLoading());
     timeBlocks.clear();
     loadBlocks();
-    var timeBlockResponse = therapist["schedule"]["time_blocks"];
+    var timeBlockResponse = therapist.schedule?.timeBlocks;
     if (timeBlockResponse != null) {
       for (var timeBlock in timeBlockResponse) {
         var dateTime =
-            intl.DateFormat("yyyy/MM/dd & h:mm a").parse(timeBlock["date"]);
+            intl.DateFormat("yyyy/MM/dd & h:mm a").parse(timeBlock.date);
         try {
           timeBlocks
               .firstWhere((element) => element.dateTime == dateTime)
