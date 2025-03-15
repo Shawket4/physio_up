@@ -107,7 +107,6 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
         builder: (context, state) {
           AppointmentRequestCubit cubit = AppointmentRequestCubit.get(context);
                 return Scaffold(
-            backgroundColor: Colors.white,
             body: SingleChildScrollView(
               child: Column(
                 children: [
@@ -145,6 +144,7 @@ class _AppointmentRequestScreenState extends State<AppointmentRequestScreen> {
                       ],
                     ),
                   ),
+                  state is SseConnectionFailed ? _buildEmptyState("SSE Failed", "No automatic syncing available") :
                   state is FetchDataLoading
                       ? Center(
                           child: Padding(

@@ -71,7 +71,6 @@ class _WhatsAppQRCodeState extends State<WhatsAppQRCode> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: CustomAppBar(title: "WhatsApp Integration", actions: []),
       body: FutureBuilder(
         future: _getQRCode(),

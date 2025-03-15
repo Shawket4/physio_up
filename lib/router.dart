@@ -32,13 +32,50 @@ class _RouterWidgetState extends State<RouterWidget> {
   late List<NavigationItem> _navigationItems;
   late Widget _currentScreen;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  List<BottomNavigationItem> _bottomNavItems = [];
+
   
   @override
   void initState() {
     super.initState();
+    _initializeBottomNavigation();
     _buildNavigationItems();
     _currentScreen = _navigationItems[0].screen;
   }
+
+  void _initializeBottomNavigation() {
+  _bottomNavItems = [
+    BottomNavigationItem(
+      icon: Icons.home_rounded,
+      label: 'Requests',
+      screen: AppointmentRequestScreen(),
+    ),
+    if (userInfo.permission == 2)
+      BottomNavigationItem(
+        icon: Icons.calendar_month_rounded,
+        label: 'My Schedule',
+        screen: TherapistScheduleScreen(),
+      ),
+    BottomNavigationItem(
+      icon: Icons.person_rounded,
+      label: 'Therapists',
+      screen: TherapistListScreen(),
+    ),
+    BottomNavigationItem(
+      icon: Icons.people_alt_rounded,
+      label: 'Patients',
+      screen: PatientListScreen(),
+    ),
+  ];
+}
+
+void _onBottomNavTap(int index) {
+  setState(() {
+    _selectedIndex = index;
+    _currentScreen = _bottomNavItems[index].screen;
+  });
+}
+
   
   void _buildNavigationItems() {
     _navigationItems = [
@@ -260,7 +297,16 @@ class _RouterWidgetState extends State<RouterWidget> {
             ),
           ],),
         drawer: AppDrawer(),
-        body: _currentScreen,
+        // bottomNavigationBar: _buildBottomNavigationBar(),
+        body: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 80.0),
+              child: _currentScreen,
+            ),
+            Align(alignment: Alignment.bottomCenter,child: _buildBottomNavigationBar()),
+          ],
+        ),
       ),
     );
   }
@@ -483,6 +529,78 @@ class _RouterWidgetState extends State<RouterWidget> {
     ),
   );
 }
+Widget _buildBottomNavigationBar() {
+  final theme = Theme.of(context);
+  final colorScheme = theme.colorScheme;
+  
+  return SafeArea(
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+      decoration: BoxDecoration(
+        color: colorScheme.primary,
+        borderRadius: BorderRadius.circular(28),
+        
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: List.generate(
+          _bottomNavItems.length,
+          (index) => GestureDetector(
+            onTap: () => _onBottomNavTap(index),
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: _selectedIndex == index 
+                    ? Colors.white.withOpacity(0.15) 
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    _bottomNavItems[index].icon,
+                    color: _selectedIndex == index 
+                        ? Colors.white 
+                        : Colors.white.withOpacity(0.65),
+                    size: 24,
+                  ),
+                  const SizedBox(height: 4),
+                  AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 200),
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: _selectedIndex == index 
+                          ? FontWeight.w600 
+                          : FontWeight.w500,
+                      color: _selectedIndex == index 
+                          ? Colors.white 
+                          : Colors.white.withOpacity(0.65),
+                      letterSpacing: 0.2,
+                    ),
+                    child: Text(_bottomNavItems[index].label),
+                  ),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    margin: const EdgeInsets.only(top: 3),
+                    height: 2.5,
+                    width: _selectedIndex == index ? 16 : 0,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(1.5),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
 }
 
 class NavigationItem {
@@ -493,6 +611,18 @@ class NavigationItem {
   NavigationItem({
     required this.title,
     required this.icon,
+    required this.screen,
+  });
+}
+
+class BottomNavigationItem {
+  final IconData icon;
+  final String label;
+  final Widget screen;
+  
+  BottomNavigationItem({
+    required this.icon,
+    required this.label,
     required this.screen,
   });
 }

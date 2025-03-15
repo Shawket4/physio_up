@@ -127,7 +127,7 @@ class MakeAppointmentScreenState extends State<MakeAppointmentScreen> {
                                   DateTime? returnedDate = await showDatePicker(
                                     context: context,
                                     initialDate: cubit.currentDate,
-                                    firstDate: DateTime.now(),
+                                    firstDate: DateTime.now().subtract(Duration(days: 365)),
                                     lastDate: DateTime.now()
                                         .add(const Duration(days: 90)),
                                     builder: (context, child) {

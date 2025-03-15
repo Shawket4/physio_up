@@ -73,7 +73,6 @@ class _TherapistScheduleScreenState extends State<TherapistScheduleScreen> {
   @override
   Widget build(BuildContext context) {
   return Scaffold(
-    backgroundColor: Colors.white,
     floatingActionButton: FloatingActionButton(
       onPressed: () {
         Navigator.push(

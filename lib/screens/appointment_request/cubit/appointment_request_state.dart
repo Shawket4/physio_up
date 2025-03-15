@@ -19,3 +19,9 @@ final class FetchDataError extends AppointmentRequestState {
 
   FetchDataError(this.error);
 }
+
+final class SseConnectionFailed extends AppointmentRequestState {
+  final String message;
+
+  SseConnectionFailed(this.message);
+}
