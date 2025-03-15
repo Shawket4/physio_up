@@ -1,13 +1,13 @@
 import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:phsyio_up/dio_helper.dart';
+import 'package:phsyio_up/components/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'dart:typed_data';
 import 'package:phsyio_up/models/appointment_request.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:phsyio_up/models/therapist.dart';
-import 'package:phsyio_up/screens/secretary/accept_appointment.dart';
+import 'package:phsyio_up/screens/secretary/Ui/accept_appointment.dart';
 import 'dart:convert';
 part 'appointment_request_state.dart';
 

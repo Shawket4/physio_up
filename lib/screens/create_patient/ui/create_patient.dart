@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/components/app_bar.dart';
-import 'package:phsyio_up/screens/create_patient/create_pateint_cubit/create_patient_cubit.dart';
+import 'package:phsyio_up/screens/create_patient/cubit/create_patient_cubit.dart';
 
 class CreatePatientScreen extends StatefulWidget {
   const CreatePatientScreen({super.key});

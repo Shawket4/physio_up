@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:phsyio_up/components/app_bar.dart';
-import 'package:phsyio_up/dio_helper.dart';
+import 'package:phsyio_up/components/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/treatment_plan.dart';
 

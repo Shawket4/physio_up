@@ -1,63 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
+import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/main.dart';
-import 'package:phsyio_up/screens/therapist/add_time_block.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:phsyio_up/models/therapist.dart';
-import 'package:phsyio_up/dio_helper.dart';
+import 'package:phsyio_up/components/dio_helper.dart';
 
-class TherapistScheduleScreen extends StatefulWidget {
-  const TherapistScheduleScreen({super.key});
+class TherapistDetailsScreen extends StatefulWidget {
+  final Therapist therapist;
+
+  const TherapistDetailsScreen({super.key, required this.therapist});
 
   @override
-  State<TherapistScheduleScreen> createState() => _TherapistScheduleScreenState();
+  State<TherapistDetailsScreen> createState() => _TherapistDetailsScreenState();
 }
-DateTime today = DateTime.now();
-late Therapist therapist;
-class _TherapistScheduleScreenState extends State<TherapistScheduleScreen> {
+
+ DateTime today = DateTime.now();
+class _TherapistDetailsScreenState extends State<TherapistDetailsScreen> {
   DateTime _selectedDay = DateTime(today.year, today.month, today.day);
-  DateTime _focusedDay = DateTime(today.year, today.month, today.day);
   Map<DateTime, List<TimeBlock>> _bookedSlots = {};
-  
-  // Track first and last visible days
-  late DateTime _firstVisibleDay;
-  late DateTime _lastVisibleDay;
 
   @override
   void initState() {
     super.initState();
-    _calculateVisibleDays();
-  }
-  
-  void _calculateVisibleDays() {
-    // Calculate visible range based on the focused day
-    // This will depend on the calendar format (month, week, etc.)
-    final DateTime firstDay = DateTime(_focusedDay.year, _focusedDay.month, 1);
-    final DateTime lastDay = DateTime(_focusedDay.year, _focusedDay.month + 1, 0);
-    
-    setState(() {
-      _firstVisibleDay = firstDay;
-      _lastVisibleDay = lastDay;
-    });
+    _bookedSlots = _fetchBookedSlots();
   }
 
-  Future<Therapist> _fetchTherapist() async {
-    // Now also passing the visible date range to the API
-    dynamic response = await postData(
-      "$ServerIP/api/protected/GetTherapistSchedule", {
-        "start_date": DateFormat("yyyy/MM/dd").format(_firstVisibleDay),
-        "end_date": DateFormat("yyyy/MM/dd").format(_lastVisibleDay)
-      }
-    );
-    therapist = parseTherapist(response);
-    _processBookedSlots(therapist);
-    return therapist;
-  }
-
-  void _processBookedSlots(Therapist therapist) {
+  /// Extracts and correctly parses date/time blocks
+  Map<DateTime, List<TimeBlock>> _fetchBookedSlots() {
     Map<DateTime, List<TimeBlock>> bookedSlots = {};
-    for (var block in therapist.schedule?.timeBlocks ?? []) {
+
+    for (var block in widget.therapist.schedule?.timeBlocks ?? []) {
       try {
         String dateString = block.date.split(" & ")[0].trim();
         DateTime parsedDate = DateFormat("yyyy/MM/dd").parse(dateString);
@@ -67,86 +40,17 @@ class _TherapistScheduleScreenState extends State<TherapistScheduleScreen> {
         print("Error parsing date: ${block.date} - $e");
       }
     }
-    _bookedSlots = bookedSlots;
+    setState(() {
+
+    });
+    return bookedSlots;
   }
 
   @override
   Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: Colors.white,
-    floatingActionButton: FloatingActionButton(
-      onPressed: () {
-        Navigator.push(
-          context, 
-          MaterialPageRoute(
-            builder: (_) => MultiSelectAppointmentScreen(therapist: therapist, focusedDay: _focusedDay)
-          )
-        );
-      },
-      backgroundColor: Colors.red,
-      child: Icon(Icons.block, color: Colors.white),
-      tooltip: "Block Time Slots",
-      elevation: 4,
-    ),
-    // drawer: AppDrawer(),
-    
-    body: FutureBuilder<Therapist>(
-      future: _fetchTherapist(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-                    child: Lottie.asset(
-                      "assets/lottie/Loading.json",
-                      height: 200,
-                      width: 200,
-                    ),
-                  );
-        } else if (snapshot.hasError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 60,
-                  color: Colors.red.shade300,
-                ),
-                SizedBox(height: 16),
-                Text(
-                  "Error: ${snapshot.error}",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.red.shade700,
-                  ),
-                ),
-              ],
-            ),
-          );
-        } else if (!snapshot.hasData) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.event_busy,
-                  size: 60,
-                  color: Colors.grey.shade400,
-                ),
-                SizedBox(height: 16),
-                Text(
-                  "No schedule data available",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-        
-        return Column(
+    return Scaffold(
+      appBar: CustomAppBar(title: widget.therapist.name, actions: []),
+      body: Column(
           children: [
             Container(
               decoration: BoxDecoration(
@@ -162,24 +66,12 @@ class _TherapistScheduleScreenState extends State<TherapistScheduleScreen> {
               child: TableCalendar(
                 firstDay: DateTime.now().subtract(const Duration(days: 365)),
                 lastDay: DateTime.now().add(const Duration(days: 365)),
-                focusedDay: _focusedDay,
+                focusedDay: _selectedDay,
                 selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-               onDaySelected: (selectedDay, focusedDay) {
-    // Check if the selected day is within the current month
-    if (selectedDay.month == _focusedDay.month) {
-      setState(() {
-        _selectedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
-        _focusedDay = focusedDay;
-      });
-    }
-  },
-                onPageChanged: (focusedDay) {
+                onDaySelected: (selectedDay, focusedDay) {
                   setState(() {
-                    _focusedDay = focusedDay;
+                    _selectedDay = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
                   });
-                  _calculateVisibleDays();
-                  // Refetch data when calendar page changes
-                  setState(() {}); // Trigger rebuild to call _fetchTherapist again
                 },
                 eventLoader: (day) => _bookedSlots[DateTime(day.year, day.month, day.day)] ?? [],
                 calendarStyle: CalendarStyle(
@@ -210,45 +102,21 @@ class _TherapistScheduleScreenState extends State<TherapistScheduleScreen> {
             ),
             Padding(
               padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.date_range,
-                        color: Colors.blue.shade800,
-                        size: 20,
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        "Viewing: ${DateFormat('MMM d').format(_firstVisibleDay)} - ${DateFormat('MMM d, yyyy').format(_lastVisibleDay)}",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.blue.shade600,
-                        ),
-                      ),
-                    ],
+                  Icon(
+                    Icons.event_note,
+                    color: Colors.blue.shade800,
+                    size: 20,
                   ),
-                  SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.event_note,
-                        color: Colors.blue.shade800,
-                        size: 20,
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        "Appointments for ${DateFormat('MMMM d, yyyy').format(_selectedDay)}",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade800,
-                        ),
-                      ),
-                    ],
+                  SizedBox(width: 8),
+                  Text(
+                    "Appointments for ${DateFormat('MMMM d, yyyy').format(_selectedDay)}",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue.shade800,
+                    ),
                   ),
                 ],
               ),
@@ -378,12 +246,8 @@ class _TherapistScheduleScreenState extends State<TherapistScheduleScreen> {
                 ),
             ),
           ],
-        );
-      },
-    ),
-  );
-}
-
+        ));
+  }
 
   Future<void> _markAsCompleted(int appointmentId) async {
     try {

@@ -1,10 +1,12 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/components/app_bar.dart';
-import 'package:phsyio_up/dio_helper.dart';
+import 'package:phsyio_up/components/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
-import 'package:phsyio_up/screens/secretary/router.dart';
+import 'package:phsyio_up/screens/secretary/Ui/router.dart';
 
 class WhatsAppQRCode extends StatefulWidget {
   const WhatsAppQRCode({super.key});

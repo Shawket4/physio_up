@@ -5,7 +5,7 @@ import 'package:lottie/lottie.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:phsyio_up/components/app_bar.dart';
-import 'package:phsyio_up/dio_helper.dart';
+import 'package:phsyio_up/components/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/referral.dart';
 import 'package:phsyio_up/screens/referral/cubit/referral_cubit.dart';

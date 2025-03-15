@@ -2,7 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:meta/meta.dart';
 import 'package:phsyio_up/models/therapist.dart' hide TimeBlock;
 import 'package:phsyio_up/models/time_block.dart';
-import 'package:phsyio_up/dio_helper.dart';
+import 'package:phsyio_up/components/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:intl/intl.dart' as intl;
 part 'create_patient_appointment_state.dart';

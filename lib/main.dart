@@ -1,20 +1,18 @@
 // ignore_for_file: unused_local_variable, non_constant_identifier_names, constant_identifier_names, unused_import, deprecated_member_use
 import 'dart:io';
 
-import 'package:phsyio_up/dio_helper.dart';
+import 'package:phsyio_up/components/dio_helper.dart';
 import 'package:phsyio_up/models/user.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
 import 'package:dio/dio.dart';
 import 'package:material_color_generator/material_color_generator.dart';
-import 'package:phsyio_up/screens/whatsappqrcode.dart';
+import 'package:phsyio_up/screens/patient/Ui/whatsappqrcode.dart';
 import 'package:phsyio_up/screens/appointment_request/Ui/appointment_requests.dart';
 import 'package:phsyio_up/screens/login/Ui/login_screen.dart';
-import 'package:phsyio_up/screens/secretary/router.dart';
+import 'package:phsyio_up/screens/secretary/Ui/router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lottie/lottie.dart';
-
 import 'dart:convert';
 
 extension HexColor on Color {

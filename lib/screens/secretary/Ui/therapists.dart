@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
-import 'package:phsyio_up/dio_helper.dart';
+import 'package:phsyio_up/components/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/therapist.dart';
-import 'package:phsyio_up/screens/secretary/therapist_detail_screen.dart';
+import 'package:phsyio_up/screens/secretary/Ui/therapist_detail_screen.dart';
 
 class TherapistListScreen extends StatefulWidget {
   const TherapistListScreen({super.key});

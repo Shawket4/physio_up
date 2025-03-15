@@ -4,9 +4,9 @@ import 'package:intl/intl.dart' as intl;
 import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/models/therapist.dart';
-import 'package:phsyio_up/dio_helper.dart';
+import 'package:phsyio_up/components/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
-import 'package:phsyio_up/screens/secretary/router.dart';
+import 'package:phsyio_up/screens/secretary/Ui/router.dart';
 
 class MultiSelectAppointmentScreen extends StatefulWidget {
   final Therapist therapist;

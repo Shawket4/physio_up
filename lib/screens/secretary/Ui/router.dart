@@ -7,15 +7,15 @@ import 'package:lottie/lottie.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:phsyio_up/components/app_bar.dart';
-import 'package:phsyio_up/dio_helper.dart';
+import 'package:phsyio_up/components/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/screens/patient/Ui/patients_list.dart';
 import 'package:phsyio_up/screens/referral/Ui/referral_list_screen.dart';
 import 'package:phsyio_up/screens/treatment_packages/Ui/treatment_list_screen.dart';
 import 'package:phsyio_up/screens/appointment_request/Ui/appointment_requests.dart';
-import 'package:phsyio_up/screens/secretary/date_dialog.dart';
-import 'package:phsyio_up/screens/secretary/therapists.dart';
-import 'package:phsyio_up/screens/therapist/therapist_schedule.dart';
+import 'package:phsyio_up/screens/secretary/Ui/date_dialog.dart';
+import 'package:phsyio_up/screens/secretary/Ui/therapists.dart';
+import 'package:phsyio_up/screens/therapist/Ui/therapist_schedule.dart';
 
 
 
