@@ -10,7 +10,7 @@ import 'package:material_color_generator/material_color_generator.dart';
 import 'package:phsyio_up/screens/patient/Ui/whatsappqrcode.dart';
 import 'package:phsyio_up/screens/appointment_request/Ui/appointment_requests.dart';
 import 'package:phsyio_up/screens/login/Ui/login_screen.dart';
-import 'package:phsyio_up/screens/secretary/Ui/router.dart';
+import 'package:phsyio_up/router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lottie/lottie.dart';
 import 'dart:convert';
