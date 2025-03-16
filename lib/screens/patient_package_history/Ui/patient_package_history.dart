@@ -1,12 +1,11 @@
 // ignore_for_file: deprecated_member_use
-
+import 'package:phsyio_up/models/treatment_plan.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/components/app_bar.dart';
-import 'package:phsyio_up/components/dio_helper.dart';
-import 'package:phsyio_up/main.dart';
-import 'package:phsyio_up/models/treatment_plan.dart';
 import 'package:phsyio_up/screens/patient_package_appointment/Ui/patient_package_appointments.dart';
+import 'package:phsyio_up/screens/patient_package_history/cubit/patient_package_history_cubit.dart';
 import 'package:phsyio_up/screens/referral/Ui/set_referral_screen.dart';
 
 class PatientPackageHistoryScreen extends StatefulWidget {
@@ -14,107 +13,108 @@ class PatientPackageHistoryScreen extends StatefulWidget {
   const PatientPackageHistoryScreen({super.key, required this.PatientID});
 
   @override
-  State<PatientPackageHistoryScreen> createState() => _PatientPackageHistoryScreenState();
+  State<PatientPackageHistoryScreen> createState() =>
+      _PatientPackageHistoryScreenState();
 }
 
-class _PatientPackageHistoryScreenState extends State<PatientPackageHistoryScreen> {
-  Future<List<TreatmentPlan>> _fetchPatientPackageHistory() async {
-    List<TreatmentPlan> treatmentPlans = [];
-    try {
-      final response = await postData(
-        "$ServerIP/api/protected/FetchPatientPackages",
-        {"patient_id": widget.PatientID},
-      );
-      for (var package in response.reversed.toList()) {
-        TreatmentPlan treatmentPlan = TreatmentPlan.fromJson(package);
-        treatmentPlans.add(treatmentPlan);
-      }
-    } catch (e) {
-      print("Error fetching patient current package: $e");
-    }
-    return treatmentPlans;
-  }
-
+class _PatientPackageHistoryScreenState
+    extends State<PatientPackageHistoryScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar(title: "Packages", actions: []),
-      
-      body: FutureBuilder(
-        future: _fetchPatientPackageHistory(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
+    return BlocProvider(
+      create: (context) => PatientPackageHistoryCubit(),
+      child: BlocBuilder<PatientPackageHistoryCubit, PatientPackageHistoryState>(
+        builder: (context, state) {
+          final cubit = PatientPackageHistoryCubit.get(context);
+          return Scaffold(
+            appBar: CustomAppBar(title: "Packages", actions: []),
+            body: FutureBuilder(
+              future: cubit.fetchPatientPackageHistory(widget.PatientID),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
                     child: Lottie.asset(
                       "assets/lottie/Loading.json",
                       height: 200,
                       width: 200,
                     ),
                   );
-          } else if (snapshot.hasError) {
-            return Center(
-              child: Text('Error: ${snapshot.error}'),
-            );
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(
-              child: Text('No package history found'),
-            );
-          } else {
-            // Split packages into active and history
-            final activePackages = snapshot.data!.where((package) => package.remaining! > 0).toList();
-            final historyPackages = snapshot.data!.where((package) => package.remaining! <= 0).toList();
+                } else if (snapshot.hasError) {
+                  return Center(
+                    child: Text('Error: ${snapshot.error}'),
+                  );
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(
+                    child: Text('No package history found'),
+                  );
+                } else {
+                  // Split packages into active and history
+                  final activePackages = snapshot.data!
+                      .where((package) => package.remaining! > 0)
+                      .toList();
+                  final historyPackages = snapshot.data!
+                      .where((package) => package.remaining! <= 0)
+                      .toList();
 
-            return SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Active Packages Section
-                    _buildSectionHeader(context, "Active Packages", Icons.bookmark, Colors.blue),
-                    if (activePackages.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16.0),
-                        child: Center(child: Text("No active packages")),
-                      )
-                    else
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: activePackages.length,
-                        itemBuilder: (context, index) {
-                          return _buildPackageCard(context, activePackages[index], true);
-                        },
+                  return SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Active Packages Section
+                          _buildSectionHeader(context, "Active Packages",
+                              Icons.bookmark, Colors.blue),
+                          if (activePackages.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16.0),
+                              child: Center(child: Text("No active packages")),
+                            )
+                          else
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: activePackages.length,
+                              itemBuilder: (context, index) {
+                                return _buildPackageCard(
+                                    context, activePackages[index], true,cubit);
+                              },
+                            ),
+                          const SizedBox(height: 24),
+
+                          // History Section
+                          _buildSectionHeader(context, "Package History",
+                              Icons.history, Colors.grey),
+                          if (historyPackages.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16.0),
+                              child: Center(child: Text("No package history")),
+                            )
+                          else
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: historyPackages.length,
+                              itemBuilder: (context, index) {
+                                return _buildPackageCard(
+                                    context, historyPackages[index], false,cubit);
+                              },
+                            ),
+                        ],
                       ),
-                    const SizedBox(height: 24),
-                    
-                    // History Section
-                    _buildSectionHeader(context, "Package History", Icons.history, Colors.grey),
-                    if (historyPackages.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16.0),
-                        child: Center(child: Text("No package history")),
-                      )
-                    else
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: historyPackages.length,
-                        itemBuilder: (context, index) {
-                          return _buildPackageCard(context, historyPackages[index], false);
-                        },
-                      ),
-                  ],
-                ),
-              ),
-            );
-          }
+                    ),
+                  );
+                }
+              },
+            ),
+          );
         },
       ),
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title, IconData icon, Color color) {
+  Widget _buildSectionHeader(
+      BuildContext context, String title, IconData icon, Color color) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -124,9 +124,9 @@ class _PatientPackageHistoryScreenState extends State<PatientPackageHistoryScree
           Text(
             title,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -137,12 +137,15 @@ class _PatientPackageHistoryScreenState extends State<PatientPackageHistoryScree
     );
   }
 
-  Widget _buildPackageCard(BuildContext context, TreatmentPlan package, bool isActive) {
+  Widget _buildPackageCard(
+      BuildContext context, TreatmentPlan package, bool isActive,PatientPackageHistoryCubit cubit) {
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: isActive ? Colors.blue.withOpacity(0.5) : Colors.grey.withOpacity(0.3),
+          color: isActive
+              ? Colors.blue.withOpacity(0.5)
+              : Colors.grey.withOpacity(0.3),
           width: isActive ? 2 : 1,
         ),
       ),
@@ -168,13 +171,13 @@ class _PatientPackageHistoryScreenState extends State<PatientPackageHistoryScree
                     child: Text(
                       "${package.superTreatmentPlan?.description ?? 'No description'}",
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontWeight: FontWeight.bold,
+                          ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  _buildStatusIndicators(package),
+                  _buildStatusIndicators(package,cubit,context),
                 ],
               ),
               const Divider(height: 24),
@@ -185,9 +188,11 @@ class _PatientPackageHistoryScreenState extends State<PatientPackageHistoryScree
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildInfoRow("Date", package.date ?? "Not specified"),
-                        _buildInfoRow("Price", "\$${package.superTreatmentPlan?.price ?? 0}"),
+                        _buildInfoRow("Price",
+                            "\$${package.superTreatmentPlan?.price ?? 0}"),
                         _buildInfoRow("Discount", "${package.discount ?? 0}%"),
-                        _buildInfoRow("Total", "\$${package.totalPrice?.toStringAsFixed(2) ?? 0}"),
+                        _buildInfoRow("Total",
+                            "\$${package.totalPrice?.toStringAsFixed(2) ?? 0}"),
                       ],
                     ),
                   ),
@@ -196,7 +201,8 @@ class _PatientPackageHistoryScreenState extends State<PatientPackageHistoryScree
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSessionsIndicator(context, package.remaining ?? 0),
+                        _buildSessionsIndicator(
+                            context, package.remaining ?? 0),
                         const SizedBox(height: 8),
                         _buildActionButton(context, package),
                       ],
@@ -265,7 +271,7 @@ class _PatientPackageHistoryScreenState extends State<PatientPackageHistoryScree
     );
   }
 
-  Widget _buildStatusIndicators(TreatmentPlan package) {
+  Widget _buildStatusIndicators(TreatmentPlan package,PatientPackageHistoryCubit cubit,BuildContext context) {
     return Row(
       children: [
         if (package.isPaid ?? false)
@@ -277,31 +283,33 @@ class _PatientPackageHistoryScreenState extends State<PatientPackageHistoryScree
                 color: Colors.green.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Icon(Icons.monetization_on, color: Colors.green, size: 20),
+              child: const Icon(Icons.monetization_on,
+                  color: Colors.green, size: 20),
             ),
           ),
         const SizedBox(width: 8),
-        _buildPackageMenu(package),
+        _buildPackageMenu(package,cubit,context),
       ],
     );
   }
 
-  Widget _buildPackageMenu(TreatmentPlan package) {
+  Widget _buildPackageMenu(TreatmentPlan package,PatientPackageHistoryCubit cubit,BuildContext context) {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.more_vert, color: Colors.grey),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onSelected: (String value) async {
         if (value == "delete") {
-          await _showDeleteConfirmation(package);
+          await _showDeleteConfirmation(package,cubit,context);
         } else if (value == "set_referral") {
           await Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => SetReferralScreen(package: package)),
+            MaterialPageRoute(
+                builder: (_) => SetReferralScreen(package: package)),
           ).then((_) => setState(() {}));
         } else if (value == "mark_as_paid") {
-          await _markPackageAsPaid(package.id);
+          await cubit.markPackageAsPaid(package.id,context);
         } else if (value == "mark_as_unpaid") {
-          await _markPackageAsUnpaid(package.id);
+          await cubit.markPackageAsUnpaid(package.id,context);
         }
       },
       itemBuilder: (BuildContext context) {
@@ -373,13 +381,14 @@ class _PatientPackageHistoryScreenState extends State<PatientPackageHistoryScree
     );
   }
 
-  Future<void> _showDeleteConfirmation(TreatmentPlan package) async {
+  Future<void> _showDeleteConfirmation(TreatmentPlan package,PatientPackageHistoryCubit cubit,BuildContext context) async {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Delete Package'),
-          content: const Text('Are you sure you want to delete this package? This action cannot be undone.'),
+          content: const Text(
+              'Are you sure you want to delete this package? This action cannot be undone.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -388,7 +397,7 @@ class _PatientPackageHistoryScreenState extends State<PatientPackageHistoryScree
             TextButton(
               onPressed: () async {
                 Navigator.of(context).pop();
-                await _deletePackage(package.id);
+                await cubit.deletePackage(package.id,context);
               },
               child: const Text('Delete', style: TextStyle(color: Colors.red)),
             ),
@@ -396,83 +405,5 @@ class _PatientPackageHistoryScreenState extends State<PatientPackageHistoryScree
         );
       },
     );
-  }
-
-  Future<void> _deletePackage(int? packageId) async {
-    if (packageId == null) return;
-    
-    try {
-      await postData("$ServerIP/api/protected/RemovePackage", {
-        "id": packageId,
-      });
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Package deleted successfully"),
-          backgroundColor: Colors.green,
-        ),
-      );
-      
-      setState(() {});
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error: ${e.toString()}"),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  Future<void> _markPackageAsPaid(int? packageId) async {
-    if (packageId == null) return;
-    
-    try {
-      await postData("$ServerIP/api/protected/MarkPackageAsPaid", {
-        "package_id": packageId,
-      });
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Package marked as paid"),
-          backgroundColor: Colors.green,
-        ),
-      );
-      
-      setState(() {});
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error: ${e.toString()}"),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  Future<void> _markPackageAsUnpaid(int? packageId) async {
-    if (packageId == null) return;
-    
-    try {
-      await postData("$ServerIP/api/protected/UnMarkPackageAsPaid", {
-        "package_id": packageId,
-      });
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Package marked as unpaid"),
-          backgroundColor: Colors.green,
-        ),
-      );
-      
-      setState(() {});
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error: ${e.toString()}"),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
   }
 }
