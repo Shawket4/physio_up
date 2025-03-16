@@ -1,10 +1,12 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/components/app_bar.dart';
 import 'package:phsyio_up/components/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/treatment_plan.dart';
-import 'package:phsyio_up/screens/patient/Ui/patient_package_appointments.dart';
+import 'package:phsyio_up/screens/patient_package_appointment/Ui/patient_package_appointments.dart';
 import 'package:phsyio_up/screens/referral/Ui/set_referral_screen.dart';
 
 class PatientPackageHistoryScreen extends StatefulWidget {

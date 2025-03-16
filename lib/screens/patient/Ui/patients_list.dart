@@ -1,12 +1,13 @@
+// ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
-import 'package:phsyio_up/components/dio_helper.dart';
-import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/patient.dart';
 import 'package:phsyio_up/screens/create_patient/ui/create_patient.dart';
 import 'package:phsyio_up/screens/edit_patient/Ui/edit_patient_info.dart';
 import 'package:phsyio_up/screens/patient/Ui/patient_detail_screen.dart';
+import 'package:phsyio_up/screens/patient/cubit/patients_cubit.dart';
 
 class PatientListScreen extends StatefulWidget {
   const PatientListScreen({super.key});
@@ -16,367 +17,256 @@ class PatientListScreen extends StatefulWidget {
 }
 
 class _PatientListScreenState extends State<PatientListScreen> {
-  late Future<List<Patient>> _patientsFuture;
-  final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
-  bool _isRefreshing = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _patientsFuture = _fetchData();
-    _searchController.addListener(_onSearchChanged);
-  }
-
-  @override
-  void dispose() {
-    _searchController.removeListener(_onSearchChanged);
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  void _onSearchChanged() {
-    setState(() {
-      _searchQuery = _searchController.text.toLowerCase();
-    });
-  }
-
-  Future<void> _refreshPatients() async {
-    setState(() {
-      _isRefreshing = true;
-    });
-    
-    _patientsFuture = _fetchData();
-    
-    setState(() {
-      _isRefreshing = false;
-    });
-  }
-
-  Future<List<Patient>> _fetchData() async {
-    List<Patient> patients = [];
-    try {
-      dynamic response = await getData("$ServerIP/api/protected/FetchPatients");
-      patients = parsePatients(response);
-    } catch (e) {
-      print("Error fetching data: $e");
-      // We'll handle this in the UI
-    }
-    return patients;
-  }
-
-  Future<void> _deletePatient(Patient patient) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Delete Patient',
-          style: GoogleFonts.jost(fontWeight: FontWeight.bold),
-        ),
-        content: Text(
-          'Are you sure you want to delete ${patient.name}? This action cannot be undone.',
-          style: GoogleFonts.jost(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.jost(),
-            ),
-          ),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            icon: const Icon(Icons.delete),
-            label: Text(
-              'Delete',
-              style: GoogleFonts.jost(),
-            ),
-            onPressed: () => Navigator.of(context).pop(true),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
-
-    try {
-      await postData(
-        "$ServerIP/api/protected/DeletePatient",
-        {"patient_id": patient.id},
-      );
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("${patient.name} has been deleted"),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          action: SnackBarAction(
-            label: 'DISMISS',
-            textColor: Colors.white,
-            onPressed: () {},
-          ),
-        ),
-      );
-      
-      // Refresh the list
-      _refreshPatients();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Failed to delete patient: ${e.toString()}"),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
-
-  List<Patient> _filterPatients(List<Patient> patients) {
-    if (_searchQuery.isEmpty) {
-      return patients;
-    }
-    
-    return patients.where((patient) {
-      return patient.name.toLowerCase().contains(_searchQuery) ||
-          patient.phone.toLowerCase().contains(_searchQuery);
-    }).toList();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          final result = await Navigator.push(
-            context, 
-            MaterialPageRoute(builder: (_) => const CreatePatientScreen())
-          );
-          
-          if (result == true) {
-            _refreshPatients();
-          }
-        },
-        icon: const Icon(Icons.person_add),
-        label: Text(
-          'Add Patient',
-          style: GoogleFonts.jost(
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        elevation: 4,
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search patients by name, ID or phone',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
-                    width: 2,
-                  ),
-                ),
-                filled: true,
-                fillColor: Colors.grey.shade50,
-              ),
-            ),
-          ),
-          
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: _refreshPatients,
-              child: FutureBuilder<List<Patient>>(
-                future: _patientsFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting && !_isRefreshing) {
-                    return Center(
-                    child: Lottie.asset(
-                      "assets/lottie/Loading.json",
-                      height: 200,
-                      width: 200,
-                    ),
-                  );
-                  } 
-                  
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            size: 60,
-                            color: Colors.red.shade300,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Failed to load patients',
-                            style: GoogleFonts.jost(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          ElevatedButton.icon(
-                            onPressed: _refreshPatients,
-                            icon: const Icon(Icons.refresh),
-                            label: Text(
-                              'Try Again',
-                              style: GoogleFonts.jost(),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
+    return BlocProvider(
+      create: (context) => PatientsCubit()..init(),
+      child: BlocBuilder<PatientsCubit, PatientsState>(
+        builder: (context, state) {
+          final cubit = PatientsCubit.get(context);
+          return Scaffold(
+            floatingActionButton: FloatingActionButton.extended(
+              onPressed: () async {
+                final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const CreatePatientScreen()));
 
-                  final patients = snapshot.data ?? [];
-                  final filteredPatients = _filterPatients(patients);
-                  
-                  if (patients.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.person_off,
-                            size: 60,
-                            color: Colors.grey.shade400,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No patients found',
-                            style: GoogleFonts.jost(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                context, 
-                                MaterialPageRoute(builder: (_) => const CreatePatientScreen())
-                              ).then((value) {
-                                if (value == true) {
-                                  _refreshPatients();
-                                }
-                              });
-                            },
-                            icon: const Icon(Icons.person_add),
-                            label: Text(
-                              'Add Your First Patient',
-                              style: GoogleFonts.jost(),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  
-                  if (filteredPatients.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.search_off,
-                            size: 60,
-                            color: Colors.grey.shade400,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No results found for "$_searchQuery"',
-                            style: GoogleFonts.jost(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextButton.icon(
-                            onPressed: () {
-                              _searchController.clear();
-                            },
-                            icon: const Icon(Icons.clear),
-                            label: Text(
-                              'Clear Search',
-                              style: GoogleFonts.jost(),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(8),
-                    itemCount: filteredPatients.length,
-                    itemBuilder: (context, index) {
-                      final patient = filteredPatients[index];
-                      return PatientCard(
-                        patient: patient,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PatientDetailScreen(patient: patient),
-                            ),
-                          ).then((value) {
-                            if (value == true) {
-                              _refreshPatients();
-                            }
-                          });
-                        },
-                        onDelete: () => _deletePatient(patient),
-                        onEdit: () {
-                           Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PatientEditScreen(patient: patient),
-                            ),
-                          ).then((value) {
-                            if (value == true) {
-                              _refreshPatients();
-                            }
-                          });
-                        },
-                      );
-                    },
-                  );
-                },
+                if (result == true) {
+                  cubit.refreshPatients();
+                }
+              },
+              icon: const Icon(Icons.person_add),
+              label: Text(
+                'Add Patient',
+                style: GoogleFonts.jost(
+                  fontWeight: FontWeight.w500,
+                ),
               ),
+              elevation: 4,
             ),
-          ),
-        ],
+            body: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: TextField(
+                    controller: cubit.searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search patients by name, ID or phone',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: cubit.searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                cubit.searchController.clear();
+                              },
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.5),
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.5),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 2,
+                        ),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey.shade50,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: cubit.refreshPatients,
+                    child: FutureBuilder<List<Patient>>(
+                      future: cubit.patientsFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                                ConnectionState.waiting &&
+                            !cubit.isRefreshing) {
+                          return Center(
+                            child: Lottie.asset(
+                              "assets/lottie/Loading.json",
+                              height: 200,
+                              width: 200,
+                            ),
+                          );
+                        }
+
+                        if (snapshot.hasError) {
+                          return Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.error_outline,
+                                  size: 60,
+                                  color: Colors.red.shade300,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Failed to load patients',
+                                  style: GoogleFonts.jost(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                ElevatedButton.icon(
+                                  onPressed: cubit.refreshPatients,
+                                  icon: const Icon(Icons.refresh),
+                                  label: Text(
+                                    'Try Again',
+                                    style: GoogleFonts.jost(),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        final patients = snapshot.data ?? [];
+                        final filteredPatients = cubit.filterPatients(patients);
+
+                        if (patients.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.person_off,
+                                  size: 60,
+                                  color: Colors.grey.shade400,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No patients found',
+                                  style: GoogleFonts.jost(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (_) =>
+                                                    const CreatePatientScreen()))
+                                        .then((value) {
+                                      if (value == true) {
+                                        cubit.refreshPatients();
+                                      }
+                                    });
+                                  },
+                                  icon: const Icon(Icons.person_add),
+                                  label: Text(
+                                    'Add Your First Patient',
+                                    style: GoogleFonts.jost(),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        if (filteredPatients.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.search_off,
+                                  size: 60,
+                                  color: Colors.grey.shade400,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No results found for "$cubit.searchQuery"',
+                                  style: GoogleFonts.jost(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                TextButton.icon(
+                                  onPressed: () {
+                                    cubit.searchController.clear();
+                                  },
+                                  icon: const Icon(Icons.clear),
+                                  label: Text(
+                                    'Clear Search',
+                                    style: GoogleFonts.jost(),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        return ListView.builder(
+                          padding: const EdgeInsets.all(8),
+                          itemCount: filteredPatients.length,
+                          itemBuilder: (context, index) {
+                            final patient = filteredPatients[index];
+                            return PatientCard(
+                              patient: patient,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        PatientDetailScreen(patient: patient),
+                                  ),
+                                ).then((value) {
+                                  if (value == true) {
+                                    cubit.refreshPatients();
+                                  }
+                                });
+                              },
+                              onDelete: () => cubit.deletePatient(patient,context),
+                              onEdit: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        PatientEditScreen(patient: patient),
+                                  ),
+                                ).then((value) {
+                                  if (value == true) {
+                                    cubit.refreshPatients();
+                                  }
+                                });
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -392,7 +282,8 @@ class PatientCard extends StatelessWidget {
     super.key,
     required this.patient,
     required this.onTap,
-    required this.onDelete, required this.onEdit,
+    required this.onDelete,
+    required this.onEdit,
   });
 
   @override
@@ -418,7 +309,8 @@ class PatientCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 28,
-                backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                backgroundColor:
+                    Theme.of(context).colorScheme.primary.withOpacity(0.1),
                 child: Text(
                   patient.name.isNotEmpty ? patient.name[0].toUpperCase() : '?',
                   style: GoogleFonts.jost(
@@ -461,8 +353,8 @@ class PatientCard extends StatelessWidget {
                           patient.phone.isEmpty ? "No phone" : patient.phone,
                           style: GoogleFonts.jost(
                             fontSize: 14,
-                            color: patient.phone.isEmpty 
-                                ? Colors.grey.shade500 
+                            color: patient.phone.isEmpty
+                                ? Colors.grey.shade500
                                 : Colors.grey.shade800,
                           ),
                         ),
