@@ -14,8 +14,8 @@ import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/screens/patient/Ui/patients_list.dart';
 import 'package:phsyio_up/screens/referral/Ui/referral_list_screen.dart';
 import 'package:phsyio_up/screens/date_dialog/Ui/date_dialog.dart';
-import 'package:phsyio_up/screens/therapist/Ui/therapists.dart';
-import 'package:phsyio_up/screens/therapist/Ui/therapist_schedule.dart';
+import 'package:phsyio_up/screens/therapist/Ui/therapist_list.dart';
+import 'package:phsyio_up/screens/therapist_schedule/therapist_schedule.dart';
 import 'package:phsyio_up/screens/treatment_packages/Ui/treatment_list_screen.dart';
 import 'package:phsyio_up/screens/appointment_request/Ui/appointment_requests.dart';
 
