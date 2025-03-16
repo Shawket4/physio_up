@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:material_color_generator/material_color_generator.dart';
-import 'package:phsyio_up/screens/patient/Ui/whatsappqrcode.dart';
+import 'package:phsyio_up/screens/whatsapp_qr/Ui/whatsappqrcode.dart';
 import 'package:phsyio_up/screens/appointment_request/Ui/appointment_requests.dart';
 import 'package:phsyio_up/screens/login/Ui/login_screen.dart';
 import 'package:phsyio_up/router.dart';
