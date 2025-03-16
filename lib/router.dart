@@ -551,8 +551,8 @@ class _RouterWidgetState extends State<RouterWidget> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+            margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
             decoration: BoxDecoration(
               color: colorScheme.primary,
               borderRadius: BorderRadius.circular(28),
