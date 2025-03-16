@@ -30,10 +30,11 @@ class AcceptAppointmentCubit extends Cubit<AcceptAppointmentState> {
         "$ServerIP/api/protected/FetchPatientCurrentPackage",
         {"patient_id": patientId},
       );
-      print(response);
-      if (response != null && response["remaining"] != null) {
-        treatmentPlan = TreatmentPlan.fromJson(response);
-        if (treatmentPlan.remaining! < 1) {
+      dynamic treatmentJson = response["treatment_plan"];
+
+      if (treatmentJson != null && treatmentJson["remaining"] != null) {
+        treatmentPlan = TreatmentPlan.fromJson(treatmentJson);
+        if (response["appointments_count"]! >= treatmentPlan.superTreatmentPlan!.sessionsCount) {
           treatmentPlan.id = 0;
           await fetchSuperTreatments(requestedPlanDesc);
         }

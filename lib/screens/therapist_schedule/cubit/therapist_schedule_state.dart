@@ -1,18 +1,20 @@
 part of 'therapist_schedule_cubit.dart';
 
 @immutable
-sealed class TherapistScheduleState {}
+abstract class TherapistScheduleState {}
 
-final class TherapistScheduleInitial extends TherapistScheduleState {}
+class TherapistScheduleInitial extends TherapistScheduleState {}
 
-final class CalculateVisibleDays extends TherapistScheduleState {}
+class TherapistScheduleLoading extends TherapistScheduleState {}
 
-final class SelectDay extends TherapistScheduleState {}
+class TherapistScheduleLoaded extends TherapistScheduleState {
+  final Therapist therapist;
+  
+  TherapistScheduleLoaded(this.therapist);
+}
 
-final class SelectFocusDay extends TherapistScheduleState {}
-
-final class MarkAsCompleted extends TherapistScheduleState{}
-
-final class UnmarkAsCompleted extends TherapistScheduleState{}
-
-final class DeleteAppointment extends TherapistScheduleState{}
+class TherapistScheduleError extends TherapistScheduleState {
+  final String message;
+  
+  TherapistScheduleError(this.message);
+}

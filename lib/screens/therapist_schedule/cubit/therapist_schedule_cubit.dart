@@ -1,78 +1,90 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:meta/meta.dart';
-import 'package:phsyio_up/screens/therapist_schedule/therapist_schedule.dart';
 import 'package:flutter/material.dart';
-import 'package:phsyio_up/main.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:phsyio_up/models/therapist.dart';
 import 'package:phsyio_up/components/dio_helper.dart';
+import 'package:phsyio_up/main.dart';
+
 part 'therapist_schedule_state.dart';
 
 class TherapistScheduleCubit extends Cubit<TherapistScheduleState> {
   TherapistScheduleCubit() : super(TherapistScheduleInitial());
+  
   static TherapistScheduleCubit get(context) => BlocProvider.of(context);
-
-  DateTime selectedDay = DateTime(today.year, today.month, today.day);
-  DateTime focusedDay = DateTime(today.year, today.month, today.day);
+  
+  late Therapist therapist;
+  DateTime selectedDay = DateTime.now();
+  DateTime focusedDay = DateTime.now();
+  DateTime firstVisibleDay = DateTime.now();
+  DateTime lastVisibleDay = DateTime.now();
   Map<DateTime, List<TimeBlock>> bookedSlots = {};
-
-  // Track first and last visible days
-  late DateTime firstVisibleDay;
-  late DateTime lastVisibleDay;
-
+  
+  void init() {
+    selectedDay = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    focusedDay = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    calculateVisibleDays();
+    fetchTherapist(); // Fetch data immediately
+  }
+  
   void calculateVisibleDays() {
     // Calculate visible range based on the focused day
-    // This will depend on the calendar format (month, week, etc.)
     final DateTime firstDay = DateTime(focusedDay.year, focusedDay.month, 1);
     final DateTime lastDay = DateTime(focusedDay.year, focusedDay.month + 1, 0);
-
+    
     firstVisibleDay = firstDay;
     lastVisibleDay = lastDay;
-    emit(CalculateVisibleDays());
   }
-
+  
+  void selectDay(DateTime selected, DateTime focused) {
+    selectedDay = DateTime(selected.year, selected.month, selected.day);
+    focusedDay = focused;
+    emit(TherapistScheduleLoaded(therapist)); // Re-emit loaded state to trigger UI update
+  }
+  
+  void changePage(DateTime focused) {
+    focusedDay = focused;
+    calculateVisibleDays();
+    fetchTherapist(); // Fetch new data when page changes
+  }
+  
   Future<Therapist> fetchTherapist() async {
-    // Now also passing the visible date range to the API
-    dynamic response =
-        await postData("$ServerIP/api/protected/GetTherapistSchedule", {
-      "start_date": DateFormat("yyyy/MM/dd").format(firstVisibleDay),
-      "end_date": DateFormat("yyyy/MM/dd").format(lastVisibleDay)
-    });
-    therapist = parseTherapist(response);
-    processBookedSlots(therapist);
-    return therapist;
+    emit(TherapistScheduleLoading());
+    try {
+      dynamic response = await postData(
+        "$ServerIP/api/protected/GetTherapistSchedule", {
+          "start_date": DateFormat("yyyy/MM/dd").format(firstVisibleDay),
+          "end_date": DateFormat("yyyy/MM/dd").format(lastVisibleDay)
+        }
+      );
+      therapist = parseTherapist(response);
+      processBookedSlots(therapist);
+      emit(TherapistScheduleLoaded(therapist));
+      return therapist;
+    } catch (e) {
+      emit(TherapistScheduleError("Failed to load schedule: $e"));
+      throw Exception("Failed to load schedule: $e");
+    }
   }
-
+  
   void processBookedSlots(Therapist therapist) {
-    Map<DateTime, List<TimeBlock>> bookedSlots = {};
+    Map<DateTime, List<TimeBlock>> newBookedSlots = {};
     for (var block in therapist.schedule?.timeBlocks ?? []) {
       try {
         String dateString = block.date.split(" & ")[0].trim();
         DateTime parsedDate = DateFormat("yyyy/MM/dd").parse(dateString);
-        DateTime normalizedDate =
-            DateTime(parsedDate.year, parsedDate.month, parsedDate.day);
-        bookedSlots.putIfAbsent(normalizedDate, () => []).add(block);
+        DateTime normalizedDate = DateTime(parsedDate.year, parsedDate.month, parsedDate.day);
+        newBookedSlots.putIfAbsent(normalizedDate, () => []).add(block);
       } catch (e) {
         print("Error parsing date: ${block.date} - $e");
       }
     }
-    bookedSlots = bookedSlots;
+    bookedSlots = newBookedSlots;
   }
-
-  void selectDay() {
-    selectedDay =
-        DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
-    focusedDay = focusedDay;
-    emit(SelectDay());
+  
+  void refreshData() {
+    fetchTherapist();
   }
-
-  void selectFocusDay() {
-    focusedDay = focusedDay;
-    emit(SelectFocusDay());
-    calculateVisibleDays();
-    emit(SelectFocusDay());
-  }
-
+  
   Future<void> markAsCompleted(int appointmentId) async {
     try {
       await postData(
@@ -80,21 +92,17 @@ class TherapistScheduleCubit extends Cubit<TherapistScheduleState> {
         {"ID": appointmentId},
       );
 
-      for (var day in bookedSlots.values) {
-        for (var block in day) {
-          if (block.appointment!.id == appointmentId) {
-            bookedSlots.values
-                .firstWhere((element) => element == day)
-                .firstWhere((block2) => block2 == block)
-                .appointment!
-                .isCompleted = true;
-
-           emit(MarkAsCompleted());
+      for (var day in bookedSlots.entries) {
+        for (var block in day.value) {
+          if (block.appointment?.id == appointmentId) {
+            block.appointment!.isCompleted = true;
+            emit(TherapistScheduleLoaded(therapist)); // Re-emit loaded state
+            break;
           }
         }
       }
     } catch (e) {
-      print("Error updating price: $e");
+      emit(TherapistScheduleError("Error marking appointment as completed: $e"));
     }
   }
 
@@ -105,21 +113,17 @@ class TherapistScheduleCubit extends Cubit<TherapistScheduleState> {
         {"ID": appointmentId},
       );
 
-      for (var day in bookedSlots.values) {
-        for (var block in day) {
-          if (block.appointment!.id == appointmentId) {
-            bookedSlots.values
-                .firstWhere((element) => element == day)
-                .firstWhere((block2) => block2 == block)
-                .appointment!
-                .isCompleted = false;
-
-            emit(UnmarkAsCompleted());
+      for (var day in bookedSlots.entries) {
+        for (var block in day.value) {
+          if (block.appointment?.id == appointmentId) {
+            block.appointment!.isCompleted = false;
+            emit(TherapistScheduleLoaded(therapist)); // Re-emit loaded state
+            break;
           }
         }
       }
     } catch (e) {
-      print("Error updating price: $e");
+      emit(TherapistScheduleError("Error unmarking appointment as completed: $e"));
     }
   }
 
@@ -130,18 +134,16 @@ class TherapistScheduleCubit extends Cubit<TherapistScheduleState> {
         {"ID": timeBlockId},
       );
 
-      for (var day in bookedSlots.values) {
-        for (var block in day) {
-          if (block.id == timeBlockId) {
-           bookedSlots.values
-                .firstWhere((element) => element == day)
-                .remove(block);
-            emit(DeleteAppointment());
-          }
-        }
+      for (var entry in Map<DateTime, List<TimeBlock>>.from(bookedSlots).entries) {
+        final date = entry.key;
+        final blocks = entry.value;
+        
+        bookedSlots[date] = blocks.where((block) => block.id != timeBlockId).toList();
       }
+      
+      emit(TherapistScheduleLoaded(therapist)); // Re-emit loaded state
     } catch (e) {
-      print("Error deleting appointment: $e");
+      emit(TherapistScheduleError("Error deleting appointment: $e"));
     }
   }
 }

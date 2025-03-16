@@ -1,13 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:meta/meta.dart';
-import 'package:phsyio_up/screens/therapist_schedule/therapist_schedule.dart';
 import 'package:flutter/material.dart';
 import 'package:phsyio_up/main.dart';
 import 'package:intl/intl.dart';
 import 'package:phsyio_up/models/therapist.dart';
 import 'package:phsyio_up/components/dio_helper.dart';
 part 'therapist_state.dart';
-
+DateTime today = DateTime.now();
 class TherapistCubit extends Cubit<TherapistState> {
   TherapistCubit() : super(TherapistInitial());
   static TherapistCubit get(context) => BlocProvider.of(context);
@@ -91,7 +90,7 @@ class TherapistCubit extends Cubit<TherapistState> {
   Future<void> deleteAppointment(int timeBlockId) async {
     try {
       await postData(
-        "$ServerIP/api/protected/RemoveAppointment",
+        "$ServerIP/api/protected/RemoveAppointmentSendMessage",
         {"ID": timeBlockId},
       );
 

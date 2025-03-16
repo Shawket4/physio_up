@@ -18,8 +18,9 @@ class PatientsCubit extends Cubit<PatientsState> {
         "$ServerIP/api/protected/FetchPatientCurrentPackage",
         {"patient_id": PatientID},
       );
-      if (response != null && response["remaining"] != null) {
-        treatmentPlan = TreatmentPlan.fromJson(response);
+
+      if (response["treatment_plan"] != null && response["treatment_plan"]["remaining"] != null) {
+        treatmentPlan = TreatmentPlan.fromJson(response["treatment_plan"]);
         if (treatmentPlan.remaining! < 1) {
           treatmentPlan.id = 0;
         }
