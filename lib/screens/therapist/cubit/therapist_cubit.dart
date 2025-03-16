@@ -116,5 +116,36 @@ class TherapistCubit extends Cubit<TherapistState> {
     emit(SelectDay(selectedDay));
   }
 
+  late Future<List<Therapist>> therapistsFuture;
+  bool isRefreshing = false;
+
+  void initList() {
+    therapistsFuture = fetchData();
+  }
+
+  Future<void> refreshTherapists() async {
+    
+      isRefreshing = true;
+    emit(RefreshTherapistsLoading());
+    
+    therapistsFuture = fetchData();
+    
+    
+      isRefreshing = false;
+    emit(RefreshTherapistsSuccess( await therapistsFuture));
+  }
+
+  Future<List<Therapist>> fetchData() async {
+    List<Therapist> therapists = [];
+    try {
+      dynamic response = await getData("$ServerIP/api/protected/GetTherapists");
+      therapists = parseTherapists(response);
+    } catch (e) {
+      print("Error fetching data: $e");
+      // We'll handle this in the UI
+    }
+    return therapists;
+  }
+
   
 }

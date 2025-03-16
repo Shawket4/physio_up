@@ -17,3 +17,10 @@ final class SelectDay extends TherapistState {
   final DateTime selectedDay;
   SelectDay(this.selectedDay);
 }
+
+final class RefreshTherapistsLoading extends TherapistState {}
+
+final class RefreshTherapistsSuccess extends TherapistState {
+  final List<Therapist> therapists;
+  RefreshTherapistsSuccess(this.therapists);
+}

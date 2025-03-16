@@ -1,12 +1,11 @@
 // ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
-import 'package:phsyio_up/components/dio_helper.dart';
-import 'package:phsyio_up/main.dart';
 import 'package:phsyio_up/models/therapist.dart';
 import 'package:phsyio_up/screens/therapist/Ui/therapist_detail_screen.dart';
+import 'package:phsyio_up/screens/therapist/cubit/therapist_cubit.dart';
 
 class TherapistListScreen extends StatefulWidget {
   const TherapistListScreen({super.key});
@@ -16,126 +15,102 @@ class TherapistListScreen extends StatefulWidget {
 }
 
 class _TherapistListScreenState extends State<TherapistListScreen> {
-  late Future<List<Therapist>> _therapistsFuture;
-  bool _isRefreshing = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _therapistsFuture = _fetchData();
-  }
-
-  Future<void> _refreshTherapists() async {
-    setState(() {
-      _isRefreshing = true;
-    });
-    
-    _therapistsFuture = _fetchData();
-    
-    setState(() {
-      _isRefreshing = false;
-    });
-  }
-
-  Future<List<Therapist>> _fetchData() async {
-    List<Therapist> therapists = [];
-    try {
-      dynamic response = await getData("$ServerIP/api/protected/GetTherapists");
-      therapists = parseTherapists(response);
-    } catch (e) {
-      print("Error fetching data: $e");
-      // We'll handle this in the UI
-    }
-    return therapists;
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: _refreshTherapists,
-        child: FutureBuilder<List<Therapist>>(
-          future: _therapistsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting && !_isRefreshing) {
-              return Center(
-                    child: Lottie.asset(
-                      "assets/lottie/Loading.json",
-                      height: 200,
-                      width: 200,
-                    ),
-                  );
-            } 
-            
-            if (snapshot.hasError) {
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 60,
-                      color: Colors.red.shade300,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Failed to load therapists',
-                      style: GoogleFonts.jost(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
+    return BlocProvider(
+      create: (context) => TherapistCubit()..initList(),
+      child: BlocBuilder<TherapistCubit, TherapistState>(
+        builder: (context, state) {
+          TherapistCubit cubit = TherapistCubit.get(context);
+          return Scaffold(
+            body: RefreshIndicator(
+              onRefresh: cubit.refreshTherapists,
+              child: FutureBuilder<List<Therapist>>(
+                future: cubit.therapistsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting &&
+                      !cubit.isRefreshing) {
+                    return Center(
+                      child: Lottie.asset(
+                        "assets/lottie/Loading.json",
+                        height: 200,
+                        width: 200,
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    ElevatedButton.icon(
-                      onPressed: _refreshTherapists,
-                      icon: const Icon(Icons.refresh),
-                      label: Text(
-                        'Try Again',
-                        style: GoogleFonts.jost(),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
+                    );
+                  }
 
-            final therapists = snapshot.data ?? [];
-            
-            if (therapists.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.people_alt_outlined,
-                      size: 60,
-                      color: Colors.grey.shade400,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No therapists found',
-                      style: GoogleFonts.jost(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 60,
+                            color: Colors.red.shade300,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Failed to load therapists',
+                            style: GoogleFonts.jost(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          ElevatedButton.icon(
+                            onPressed: cubit.refreshTherapists,
+                            icon: const Icon(Icons.refresh),
+                            label: Text(
+                              'Try Again',
+                              style: GoogleFonts.jost(),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-              );
-            }
-          
-            return ListView.builder(
-              padding: const EdgeInsets.all(8),
-              itemCount: therapists.length,
-              itemBuilder: (context, index) {
-                final therapist = therapists[index];
-                return TherapistCard(
-                  therapist: therapist,
-                );
-              },
-            );
-          },
-        ),
+                    );
+                  }
+
+                  final therapists = snapshot.data ?? [];
+
+                  if (therapists.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.people_alt_outlined,
+                            size: 60,
+                            color: Colors.grey.shade400,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No therapists found',
+                            style: GoogleFonts.jost(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(8),
+                    itemCount: therapists.length,
+                    itemBuilder: (context, index) {
+                      final therapist = therapists[index];
+                      return TherapistCard(
+                        therapist: therapist,
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -145,7 +120,7 @@ class TherapistCard extends StatelessWidget {
   final Therapist therapist;
 
   const TherapistCard({
-    super.key, 
+    super.key,
     required this.therapist,
   });
 
@@ -167,7 +142,8 @@ class TherapistCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => TherapistDetailsScreen(therapist: therapist),
+              builder: (context) =>
+                  TherapistDetailsScreen(therapist: therapist),
             ),
           );
         },
@@ -179,11 +155,12 @@ class TherapistCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 28,
-                backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                backgroundColor:
+                    Theme.of(context).colorScheme.primary.withOpacity(0.1),
                 child: Text(
-                therapist.name.isNotEmpty 
-    ? therapist.name.trim().split(' ').last[0].toUpperCase()
-    : '?',
+                  therapist.name.isNotEmpty
+                      ? therapist.name.trim().split(' ').last[0].toUpperCase()
+                      : '?',
                   style: GoogleFonts.jost(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -213,11 +190,13 @@ class TherapistCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          therapist.phone.isEmpty ? "No phone" : therapist.phone,
+                          therapist.phone.isEmpty
+                              ? "No phone"
+                              : therapist.phone,
                           style: GoogleFonts.jost(
                             fontSize: 14,
-                            color: therapist.phone.isEmpty 
-                                ? Colors.grey.shade500 
+                            color: therapist.phone.isEmpty
+                                ? Colors.grey.shade500
                                 : Colors.grey.shade800,
                           ),
                         ),
