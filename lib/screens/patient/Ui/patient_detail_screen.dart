@@ -15,7 +15,6 @@ import 'package:phsyio_up/screens/patient_records/Ui/patient_records_folder.dart
 
 class PatientDetailScreen extends StatelessWidget {
   final Patient patient;
-
   const PatientDetailScreen({super.key, required this.patient});
 
   @override
