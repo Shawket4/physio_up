@@ -5,7 +5,6 @@ import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/screens/add_time_block/Ui/add_time_block.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
-import 'package:phsyio_up/models/therapist.dart';
 import 'package:phsyio_up/screens/therapist_schedule/cubit/therapist_schedule_cubit.dart';
 
 class TherapistScheduleScreen extends StatefulWidget {

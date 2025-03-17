@@ -52,7 +52,7 @@ class AcceptAppointmentCubit extends Cubit<AcceptAppointmentState> {
 
   Future<String> fetchSuperTreatments(String requestedPlanDesc) async {
     try {
-      final response = await getData("$ServerIP/api/FetchSuperTreatments");
+      final response = await getData("$ServerIP/api/protected/FetchSuperTreatments");
 
       superTreatmentPlans = (response as List)
           .map((plan) => SuperTreatmentPlan.fromJson(plan))

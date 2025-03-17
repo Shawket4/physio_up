@@ -25,7 +25,7 @@ class _TreatmentListScreenState extends State<TreatmentListScreen> {
   Future<List<SuperTreatmentPlan>> _fetchData() async {
     List<SuperTreatmentPlan> superTreatmentPlans = [];
     try {
-      dynamic response = await getData("$ServerIP/api/FetchSuperTreatments");
+      dynamic response = await getData("$ServerIP/api/protected/FetchSuperTreatments");
       superTreatmentPlans = (response as List<dynamic>?)?.map((e) => SuperTreatmentPlan.fromJson(e)).toList() ?? [];
     } catch (e) {
       print("Error fetching data: $e");
@@ -148,7 +148,7 @@ class _TreatmentListScreenState extends State<TreatmentListScreen> {
                     const Icon(Icons.medical_services_outlined, size: 70, color: Colors.grey),
                     const SizedBox(height: 16),
                     Text(
-                      'No Treatment Packages Found',
+                      'No Packages Found',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 8),

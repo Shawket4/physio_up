@@ -130,7 +130,7 @@ class TherapistScheduleCubit extends Cubit<TherapistScheduleState> {
   Future<void> deleteAppointment(int timeBlockId) async {
     try {
       await postData(
-        "$ServerIP/api/protected/RemoveAppointment",
+        "$ServerIP/api/protected/RemoveAppointmentSendMessage",
         {"ID": timeBlockId},
       );
 

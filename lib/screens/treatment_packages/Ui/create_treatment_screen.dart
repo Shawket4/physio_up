@@ -14,7 +14,7 @@ class _CreateTreatmentScreenState extends State<CreateTreatmentScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => TreatmentPackagesCubit(),
+      create: (context) => TreatmentPackagesCubit()..initCreate(),
       child: BlocBuilder<TreatmentPackagesCubit, TreatmentPackagesState>(
         builder: (context, state) {
           TreatmentPackagesCubit cubit = TreatmentPackagesCubit.get(context);

@@ -73,41 +73,30 @@ class _ReferralListScreenState extends State<ReferralListScreen> {
                     );
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.people_alt_outlined,
-                              size: 80, color: Colors.grey[400]),
-                          SizedBox(height: 16),
-                          Text('No Referrals Found',
-                              style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.grey[700])),
-                          SizedBox(height: 8),
-                          Text('Create a new referral to get started',
-                              style: TextStyle(
-                                  fontSize: 16, color: Colors.grey[600])),
-                          SizedBox(height: 24),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (_) =>
-                                              CreateReferralScreen()))
-                                  .then((_) => cubit.refreshData());
-                            },
-                            icon: Icon(Icons.add),
-                            label: Text('Create Referral'),
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 24, vertical: 12),
-                            ),
-                          ),
-                        ],
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.people_alt, size: 70, color: Colors.grey),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No Referrals Found',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 8),
+                    if (userInfo.permission >= 2)
+                      TextButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context, 
+                            MaterialPageRoute(builder: (_) => const CreateReferralScreen())
+                          ).then((_) => cubit.refreshData());
+                        },
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add Your First Referral'),
                       ),
-                    );
+                  ],
+                ),
+              );
                   }
 
                   return ListView.builder(
