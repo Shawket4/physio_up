@@ -96,7 +96,7 @@ Future<String> get _getJwt async {
     userInfo.ID = response["data"]["ID"];
     userInfo.permission = response["data"]["permission"];
     userInfo.clinicName = response["data"]["clinic_name"];
-    userInfo.clinic_group_id = response["data"]["clinic_group_id"];
+    // userInfo.clinic_group_id = response["data"]["clinic_group_id"];
     await _checkWhatsAppLogin();
   } catch (e) {
     print(e);
