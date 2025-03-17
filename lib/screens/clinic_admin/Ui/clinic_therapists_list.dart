@@ -4,7 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:phsyio_up/models/therapist.dart';
-import 'package:phsyio_up/screens/clinic_admin/Ui/cubit/clinic_cubit.dart';
+import 'package:phsyio_up/screens/clinic_admin/Ui/register_therapist.dart';
+import 'package:phsyio_up/screens/clinic_admin/cubit/clinic_cubit.dart';
 
 class ClinicTherapistsListScreen extends StatefulWidget {
   const ClinicTherapistsListScreen({super.key});
@@ -24,6 +25,31 @@ class _ClinicTherapistsListScreenState
         builder: (context, state) {
           ClinicCubit cubit = ClinicCubit.get(context);
           return Scaffold(
+             appBar: AppBar(
+              backgroundColor: Theme.of(context).primaryColor,
+              elevation: 0,
+              title: Text(
+                "Clinic Therapists",
+                style: GoogleFonts.montserrat(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              toolbarHeight: 60,
+              centerTitle: true,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  onPressed: cubit.refreshTherapists,
+                  tooltip: "Refresh List",
+                ),
+              ],
+            ),
+            floatingActionButton: FloatingActionButton(onPressed: (){
+              Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (_) => RegisterTherapistScreen()));
+            }, child: Icon(Icons.add),),
             body: RefreshIndicator(
               onRefresh: cubit.refreshTherapists,
               child: FutureBuilder<List<Therapist>>(
