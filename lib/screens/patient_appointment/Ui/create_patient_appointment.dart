@@ -379,7 +379,6 @@ class MakeAppointmentScreenState extends State<MakeAppointmentScreen> {
                                         .format(finalDateTime),
                                 "therapist_id": cubit.selectedTherapist!.id,
                                 "patient_id": widget.patientID,
-                                "clinic_group_id": userInfo.clinic_group_id,
                               };
                               var response = await postData(
                                       "$ServerIP/api/RequestAppointment", data)

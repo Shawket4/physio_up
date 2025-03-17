@@ -1,22 +1,21 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:phsyio_up/screens/login/cubit/login_cubit.dart';
-import 'package:phsyio_up/screens/register/Ui/register_screen.dart'; // Import the register screen
+import 'package:phsyio_up/screens/register/cubit/register_cubit.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => LoginCubit(),
-      child: BlocBuilder<LoginCubit, LoginState>(
+      create: (context) => RegisterCubit(),
+      child: BlocBuilder<RegisterCubit, RegisterState>(
         builder: (context, state) {
           return Scaffold(
             backgroundColor: const Color(0xFFF2F5F9),
@@ -42,7 +41,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               const SizedBox(height: 20),
                               Text(
-                                "Welcome Back!",
+                                "Join Us!",
                                 style: GoogleFonts.montserrat(
                                   fontSize: 36,
                                   fontWeight: FontWeight.bold,
@@ -52,11 +51,11 @@ class _LoginPageState extends State<LoginPage> {
                               const SizedBox(height: 32),
                               Row(
                                 children: [
-                                  const Icon(Icons.shield,
+                                  const Icon(Icons.verified_user,
                                       color: Colors.white70, size: 24),
                                   const SizedBox(width: 12),
                                   Text(
-                                    "Secure Login",
+                                    "Secure Registration",
                                     style: GoogleFonts.montserrat(
                                       fontSize: 16,
                                       color: Colors.white70,
@@ -80,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  "Login to Your Account",
+                                  "Create Your Account",
                                   style: GoogleFonts.montserrat(
                                     fontSize: 28,
                                     fontWeight: FontWeight.bold,
@@ -89,43 +88,41 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  "Enter your credentials to access your dashboard",
+                                  "Enter your clinic information to get started",
                                   style: GoogleFonts.montserrat(
                                     fontSize: 16,
                                     color: Colors.black54,
                                   ),
                                 ),
                                 const SizedBox(height: 32),
-                                buildTextField("Username", Icons.person_outline,
-                                    LoginCubit.get(context).usernameController),
+                                buildTextField(
+                                  "Clinic Name",
+                                  Icons.business,
+                                  RegisterCubit.get(context).clinicNameController,
+                                ),
                                 const SizedBox(height: 24),
-                                buildPasswordField(LoginCubit.get(context)),
+                                buildPasswordField(RegisterCubit.get(context)),
                                 const SizedBox(height: 32),
-                                buildLoginButton(LoginCubit.get(context)),
+                                buildRegisterButton(RegisterCubit.get(context),context),
                                 const SizedBox(height: 24),
-                                // Add register text button here
+                                // Add back to login button
                                 Center(
                                   child: TextButton(
                                     onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => const RegisterScreen(),
-                                        ),
-                                      );
+                                      Navigator.pop(context);
                                     },
                                     child: RichText(
                                       text: TextSpan(
                                         children: [
                                           TextSpan(
-                                            text: "New user? ",
+                                            text: "Already have an account? ",
                                             style: GoogleFonts.montserrat(
                                               fontSize: 16,
                                               color: Colors.black54,
                                             ),
                                           ),
                                           TextSpan(
-                                            text: "Register",
+                                            text: "Sign In",
                                             style: GoogleFonts.montserrat(
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold,
@@ -188,7 +185,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget buildPasswordField(LoginCubit cubit) {
+  Widget buildPasswordField(RegisterCubit cubit) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -208,25 +205,22 @@ class _LoginPageState extends State<LoginPage> {
             borderRadius: BorderRadius.circular(8),
           ),
           child: TextField(
-            obscureText: cubit.obscurePassword,
             controller: cubit.passwordController,
+            obscureText: !cubit.isPasswordVisible,
             decoration: InputDecoration(
               border: InputBorder.none,
               contentPadding: const EdgeInsets.all(16),
               hintText: 'Enter your password',
               hintStyle: TextStyle(color: Colors.grey.shade500),
-              prefixIcon: Icon(Icons.lock_outline,
-                  color: Theme.of(context).primaryColor),
+              prefixIcon: Icon(Icons.lock_outline, color: Theme.of(context).primaryColor),
               suffixIcon: IconButton(
                 icon: Icon(
-                  cubit.obscurePassword
-                      ? Icons.visibility_off
-                      : Icons.visibility,
-                  color: Colors.grey.shade600,
+                  cubit.isPasswordVisible
+                      ? Icons.visibility
+                      : Icons.visibility_off,
+                  color: Colors.grey,
                 ),
-                onPressed: () {
-                  cubit.togglePasswordVisibility();
-                },
+                onPressed: () => cubit.togglePasswordVisibility(),
               ),
             ),
           ),
@@ -235,30 +229,30 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget buildLoginButton(LoginCubit cubit) {
-    return ElevatedButton(
-      onPressed: cubit.isLoading
-          ? null
-          : () {
-              cubit.handleLogin(context);
-            },
-      style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.white,
-        backgroundColor: Theme.of(context).primaryColor,
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        minimumSize: const Size(double.infinity, 50),
+  Widget buildRegisterButton(RegisterCubit cubit,BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 55,
+      child: ElevatedButton(
+        onPressed: () {
+          cubit.register(context);
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Theme.of(context).primaryColor,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          elevation: 0,
+        ),
+        child: Text(
+          "Register",
+          style: GoogleFonts.montserrat(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
-      child: cubit.isLoading
-          ? const SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                  color: Colors.white, strokeWidth: 2))
-          : Text("Sign In",
-              style: GoogleFonts.montserrat(
-                  fontSize: 18, fontWeight: FontWeight.bold)),
     );
   }
 }

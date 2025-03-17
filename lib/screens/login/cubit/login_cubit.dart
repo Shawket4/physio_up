@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phsyio_up/components/dialog.dart';
 import 'package:phsyio_up/components/dio_helper.dart';
 import 'package:phsyio_up/main.dart';
+import 'package:phsyio_up/screens/clinic_admin/Ui/clinic_therapists_list.dart';
 
 part 'login_state.dart';
 
@@ -39,14 +40,18 @@ class LoginCubit extends Cubit<LoginState> {
         "username": usernameController.text,
         "password": passwordController.text
       });
-
       if (response.data["message"] == "Login Successful") {
         var jwt = response.data["jwt"];
         if (await SetJwt(jwt)) {
           dio.options.headers['Authorization'] = "Bearer $jwt";
+          if(response.data["permission"] == 3){
+            Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (_) => ClinicTherapistsListScreen()));
+          }else{
           Navigator.pushReplacement(
               context, MaterialPageRoute(builder: (_) => MainWidget()));
         }
+      }
       }
     } catch (e) {
       showErrorDialogLogin(

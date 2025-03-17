@@ -1,6 +1,5 @@
 // ignore_for_file: unused_local_variable, non_constant_identifier_names, constant_identifier_names, unused_import, deprecated_member_use
 import 'dart:io';
-
 import 'package:phsyio_up/components/dio_helper.dart';
 import 'package:phsyio_up/models/user.dart';
 import 'package:flutter/foundation.dart';
@@ -32,8 +31,7 @@ extension HexColor on Color {
       '${blue.toRadixString(16).padLeft(2, '0')}';
 }
 
-// const String ServerIP = "https://physioup.ddns.net:3005";
-const String ServerIP = "http://localhost:3005";
+ const String ServerIP = "https://physioup.ddns.net:3005";
 
 
 
@@ -96,7 +94,7 @@ Future<String> get _getJwt async {
     userInfo.ID = response["data"]["ID"];
     userInfo.permission = response["data"]["permission"];
     userInfo.clinicName = response["data"]["clinic_name"];
-    // userInfo.clinic_group_id = response["data"]["clinic_group_id"];
+    //userInfo.clinic_group_id = response["data"]["clinic_group_id"];
     await _checkWhatsAppLogin();
   } catch (e) {
     print(e);
