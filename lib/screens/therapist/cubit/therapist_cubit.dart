@@ -21,7 +21,6 @@ class TherapistCubit extends Cubit<TherapistState> {
   /// Extracts and correctly parses date/time blocks
   Map<DateTime, List<TimeBlock>> fetchBookedSlots(Therapist therapist) {
     Map<DateTime, List<TimeBlock>> bookedSlots = {};
-
     for (var block in therapist.schedule?.timeBlocks ?? []) {
       try {
         String dateString = block.date.split(" & ")[0].trim();
@@ -109,9 +108,8 @@ class TherapistCubit extends Cubit<TherapistState> {
     }
   }
 
-  void selectDay() {
-    selectedDay =
-        DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+    void selectDay(DateTime newDay) {
+    selectedDay = DateTime(newDay.year, newDay.month, newDay.day);
     emit(SelectDay(selectedDay));
   }
 

@@ -117,8 +117,10 @@ class _TherapistScheduleScreenState extends State<TherapistScheduleScreen> {
                 if (selectedDay.month == cubit.focusedDay.month) {
                   cubit.selectDay(selectedDay, focusedDay);
                 }
+               
               },
               onPageChanged: (focusedDay) {
+                
                 cubit.changePage(focusedDay);
               },
               eventLoader: (day) => cubit.bookedSlots[DateTime(day.year, day.month, day.day)] ?? [],

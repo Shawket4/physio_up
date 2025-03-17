@@ -16,7 +16,7 @@ class AddTimeBlockCubit extends Cubit<AddTimeBlockState> {
   List<DateTime> selectedTimeBlocks = [];
   late DateTime selectedDate;
 
-  void init(DateTime focusedDay,Therapist therapist) {
+  void init(DateTime focusedDay, Therapist therapist) {
     selectedDate = focusedDay;
     loadBlocks();
     markBookedBlocks(therapist);
@@ -47,59 +47,60 @@ class AddTimeBlockCubit extends Cubit<AddTimeBlockState> {
   }
 
   void toggleSelection(DateTime time) {
-  
-      if (selectedTimeBlocks.contains(time)) {
-        selectedTimeBlocks.remove(time);
-      } else {
-        selectedTimeBlocks.add(time);
-      }
+    if (selectedTimeBlocks.contains(time)) {
+      selectedTimeBlocks.remove(time);
+    } else {
+      selectedTimeBlocks.add(time);
+    }
     emit(ToggleSelection());
   }
 
-  Future<void> submitAppointments(BuildContext context) async {
-    if (selectedTimeBlocks.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please select at least one time block"),
-          backgroundColor: Colors.amber,
+ Future<void> submitAppointments(BuildContext context) async {
+  if (selectedTimeBlocks.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Please select at least one time block"),
+        backgroundColor: Colors.amber,
+      ),
+    );
+    return;
+  }
+  
+  List<String> formattedTimes = selectedTimeBlocks
+      .map(
+        (dateTime) => intl.DateFormat("yyyy/MM/dd & h:mm a").format(dateTime),
+      )
+      .toList();
+      
+  // Show loading indicator
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return Center(
+        child: Lottie.asset(
+          "assets/lottie/Loading.json",
+          height: 200,
+          width: 200,
         ),
       );
-      return;
-    }
-
-    List<String> formattedTimes = selectedTimeBlocks
-        .map(
-          (dateTime) => intl.DateFormat("yyyy/MM/dd & h:mm a").format(dateTime),
-        )
-        .toList();
-
-    // Show loading indicator
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Center(
-          child: Lottie.asset(
-            "assets/lottie/Loading.json",
-            height: 200,
-            width: 200,
-          ),
-        );
-      },
-    );
-
-    try {
-      Map<String, dynamic> data = {
-        "date_times": formattedTimes,
-      };
-
-      var response = await postData(
-          "$ServerIP/api/protected/AddTherapistTimeBlocks", data);
-
-      // Close loading dialog
-      Navigator.pop(context);
-
-      if (response["message"] == "Requested Successfully") {
+    },
+  );
+  
+  try {
+    Map<String, dynamic> data = {
+      "date_times": formattedTimes,
+    };
+    print("x");
+    var response = await postData(
+      "$ServerIP/api/protected/AddTherapistTimeBlocks", data);
+    print(response);
+    // Close loading dialog
+    Navigator.pop(context);
+    
+    // Check if the response is a valid Map
+    if (response is Map<String, dynamic>) {
+      if (response["message"] == "Time blocks added successfully") {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Time blocks successfully saved!"),
@@ -107,34 +108,41 @@ class AddTimeBlockCubit extends Cubit<AddTimeBlockState> {
           ),
         );
         Navigator.push(
-            context, MaterialPageRoute(builder: (_) => RouterWidget()));
+          context, MaterialPageRoute(builder: (_) => RouterWidget()));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Failed to save time blocks."),
+          SnackBar(
+            content: Text("Failed to save time blocks: ${response["message"]}"),
             backgroundColor: Colors.red,
           ),
         );
       }
-    } catch (e) {
-      // Close loading dialog
-      Navigator.pop(context);
-
+     }
+      else {
+      // Handle the case where response is not a Map
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error: ${e.toString()}"),
+        const SnackBar(
+          content: Text("Not logged in or authentication expired"),
           backgroundColor: Colors.red,
         ),
       );
     }
+  } catch (e) {
+    // Close loading dialog
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Error: ${e.toString()}"),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
+}
 
-  void setDate(DateTime returnedDate,Therapist therapist){
-    
-                                  selectedDate = returnedDate;
-                                  loadBlocks();
-                                  markBookedBlocks(therapist);
-                                emit(SetDate(returnedDate));
+  void setDate(DateTime returnedDate, Therapist therapist) {
+    selectedDate = returnedDate;
+    loadBlocks();
+    markBookedBlocks(therapist);
+    emit(SetDate(returnedDate));
   }
-
 }
