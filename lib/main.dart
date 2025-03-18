@@ -57,7 +57,7 @@ void main() async {
     FlutterLocalNotificationsPlugin();
     
   const AndroidInitializationSettings initializationSettingsAndroid =
-    AndroidInitializationSettings('@mipmap/ic_launcher');
+    AndroidInitializationSettings('@mipmap/launch_image');
     
   final DarwinInitializationSettings initializationSettingsIOS =
     DarwinInitializationSettings();

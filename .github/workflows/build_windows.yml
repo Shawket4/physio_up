@@ -24,11 +24,8 @@ jobs:
       - run: flutter config --enable-windows-desktop
       - run: flutter create .
       - run: flutter build windows
-      - name: Build APK
-        run: flutter build apk --release
       - uses: actions/upload-artifact@master
         with:
           name: windows
           path: |
             build\windows\x64\runner\Release
-            build\app\outputs\flutter-apk

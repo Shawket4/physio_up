@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:phsyio_up/screens/register/cubit/register_cubit.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -11,6 +12,19 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  // Add a variable to track checkbox state
+  bool _acceptedPrivacyPolicy = false;
+
+  // Function to launch the privacy policy URL
+  Future<void> _launchPrivacyPolicy() async {
+    final Uri url = Uri.parse('https://physioup.ddns.net/privacy-policy');
+    if (!await launchUrl(url)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open privacy policy')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -102,8 +116,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                                 const SizedBox(height: 24),
                                 buildPasswordField(RegisterCubit.get(context)),
+                                const SizedBox(height: 24),
+                                buildPrivacyPolicyCheckbox(context),
                                 const SizedBox(height: 32),
-                                buildRegisterButton(RegisterCubit.get(context),context),
+                                buildRegisterButton(RegisterCubit.get(context), context),
                                 const SizedBox(height: 24),
                                 // Add back to login button
                                 Center(
@@ -229,14 +245,65 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget buildRegisterButton(RegisterCubit cubit,BuildContext context) {
+  // New widget for privacy policy checkbox and link
+  Widget buildPrivacyPolicyCheckbox(BuildContext context) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 24,
+          height: 24,
+          child: Checkbox(
+            value: _acceptedPrivacyPolicy,
+            activeColor: Theme.of(context).primaryColor,
+            onChanged: (value) {
+              setState(() {
+                _acceptedPrivacyPolicy = value ?? false;
+              });
+            },
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: RichText(
+            text: TextSpan(
+              style: GoogleFonts.montserrat(
+                fontSize: 14,
+                color: Colors.black87,
+              ),
+              children: [
+                const TextSpan(text: "By registering, you accept our "),
+                WidgetSpan(
+                  child: GestureDetector(
+                    onTap: _launchPrivacyPolicy,
+                    child: Text(
+                      "Privacy Policy",
+                      style: GoogleFonts.montserrat(
+                        fontSize: 14,
+                        color: Theme.of(context).primaryColor,
+                        fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget buildRegisterButton(RegisterCubit cubit, BuildContext context) {
     return SizedBox(
       width: double.infinity,
       height: 55,
       child: ElevatedButton(
-        onPressed: () {
-          cubit.register(context);
-        },
+        onPressed: _acceptedPrivacyPolicy
+            ? () {
+                cubit.register(context);
+              }
+            : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: Theme.of(context).primaryColor,
           foregroundColor: Colors.white,
@@ -244,6 +311,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             borderRadius: BorderRadius.circular(8),
           ),
           elevation: 0,
+          disabledBackgroundColor: Colors.grey.shade300,
         ),
         child: Text(
           "Register",
