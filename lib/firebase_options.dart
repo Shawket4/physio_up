@@ -73,7 +73,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '469487414723',
     projectId: 'physioup-958f0',
     storageBucket: 'physioup-958f0.firebasestorage.app',
-    iosBundleId: 'com.example.phsyioUp',
+    iosBundleId: 'com.shawketibrahim.physioup',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(

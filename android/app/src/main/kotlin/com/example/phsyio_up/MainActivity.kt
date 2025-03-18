@@ -1,4 +1,4 @@
-package com.example.phsyio_up
+package com.shawketibrahim.physioup
 
 import io.flutter.embedding.android.FlutterActivity
 
