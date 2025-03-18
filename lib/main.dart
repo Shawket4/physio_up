@@ -1,6 +1,10 @@
 // ignore_for_file: unused_local_variable, non_constant_identifier_names, constant_identifier_names, unused_import, deprecated_member_use
 import 'dart:io';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:phsyio_up/components/dio_helper.dart';
+import 'package:phsyio_up/firebase_options.dart';
 import 'package:phsyio_up/models/user.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -33,10 +37,44 @@ extension HexColor on Color {
 
  const String ServerIP = "https://physioup.ddns.net:3005";
 
-
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  print("Handling a background message: ${message.messageId}");
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  
+  // Set background message handler
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  
+  // Initialize FlutterLocalNotificationsPlugin
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = 
+    FlutterLocalNotificationsPlugin();
+    
+  const AndroidInitializationSettings initializationSettingsAndroid =
+    AndroidInitializationSettings('@mipmap/ic_launcher');
+    
+  final DarwinInitializationSettings initializationSettingsIOS =
+    DarwinInitializationSettings();
+    
+  final InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+    iOS: initializationSettingsIOS,
+  );
+  
+  await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onDidReceiveNotificationResponse: (NotificationResponse details) async {
+      // Handle notification tap here
+      print('Notification clicked: ${details.payload}');
+    },
+  );
+
   initDio();
   runApp(const MainWidget());
 }
@@ -95,6 +133,16 @@ Future<String> get _getJwt async {
     userInfo.permission = response["data"]["permission"];
     userInfo.clinicName = response["data"]["clinic_name"];
     //userInfo.clinic_group_id = response["data"]["clinic_group_id"];
+     if (!kIsWeb && !Platform.isMacOS && !Platform.isWindows) {
+        FirebaseMessaging.instance.getToken().then((token) {
+          print(token);
+          postData(
+              "$ServerIP/api/protected/SaveFCM",
+              {
+                "token": token,
+              },);
+        });
+      }
     await _checkWhatsAppLogin();
   } catch (e) {
     print(e);
@@ -152,9 +200,109 @@ class MainWidget extends StatefulWidget {
 }
 
 class _MainWidgetState extends State<MainWidget> {
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = 
+    FlutterLocalNotificationsPlugin();
+void setupNotificationChannels() async {
+    if (Platform.isAndroid) {
+      const AndroidNotificationChannel channel = AndroidNotificationChannel(
+        'high_importance_channel',
+        'High Importance Notifications',
+        description: 'This channel is used for important notifications.',
+        importance: Importance.high,
+      );
+
+      final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+          FlutterLocalNotificationsPlugin();
+
+      await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(channel);
+    }
+  }
+
   @override
   void initState() {
+    setupNotificationChannels();
+    setupPushNotifications();
     super.initState();
+  }
+
+  void setupPushNotifications() async {
+    // Request permission (iOS and some Android versions need this)
+    NotificationSettings settings = await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
+    
+    print('User granted permission: ${settings.authorizationStatus}');
+    
+    // Get the token
+    String? token = await FirebaseMessaging.instance.getToken();
+    print('FCM Token: $token');
+    
+    // Save this token to your server to send targeted notifications
+    
+    // Configure foreground notification handling
+    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+    
+    // Handle notifications when the app is in the foreground
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      RemoteNotification? notification = message.notification;
+      AndroidNotification? android = message.notification?.android;
+      
+      if (notification != null && android != null) {
+        flutterLocalNotificationsPlugin.show(
+          notification.hashCode,
+          notification.title,
+          notification.body,
+          NotificationDetails(
+            android: AndroidNotificationDetails(
+              'high_importance_channel',
+              'High Importance Notifications',
+              channelDescription: 'This channel is used for important notifications.',
+              importance: Importance.high,
+              priority: Priority.high,
+              ticker: 'ticker',
+            ),
+            iOS: DarwinNotificationDetails(),
+          ),
+          payload: message.data['route'],
+        );
+      }
+    });
+    
+    // Handle notification click when app is in background but open
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print('A new onMessageOpenedApp event was published!');
+      // Navigate based on the data in the notification
+      if (message.data['route'] != null) {
+        // Navigate to specific route
+        Navigator.of(context).pushNamed(message.data['route']);
+      }
+    });
+    
+    // Check if app was opened from a notification
+    RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null) {
+      print('App opened from terminated state via notification');
+      // Handle navigation based on the notification data
+      if (initialMessage.data['route'] != null) {
+        // Delay navigation to ensure app is fully initialized
+        Future.delayed(Duration(seconds: 1), () {
+          Navigator.of(context).pushNamed(initialMessage.data['route']);
+        });
+      }
+    }
   }
 
   Key key = UniqueKey();
