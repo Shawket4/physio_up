@@ -58,6 +58,7 @@ class _TreatmentPlanScreenState extends State<TreatmentPlanScreen> {
   }
 
   Widget _buildSuperTreatmentDropdown(AcceptAppointmentCubit cubit) {
+    print(cubit.selectedSuperTreatmentPlanId);
     double total = cubit.superTreatmentPlans
             .where((SuperTreatmentPlan plan) =>
                 plan.id == cubit.selectedSuperTreatmentPlanId)
@@ -69,7 +70,7 @@ class _TreatmentPlanScreenState extends State<TreatmentPlanScreen> {
     double cashback = cubit.selectedReferral != null
         ? total * (cubit.selectedReferral!.cashbackPercentage! / 100)
         : 0;
-
+  print("reached");
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(

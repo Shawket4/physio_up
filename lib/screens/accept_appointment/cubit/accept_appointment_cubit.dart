@@ -64,7 +64,7 @@ class AcceptAppointmentCubit extends Cubit<AcceptAppointmentState> {
       if (requestedPlan != null) {
         selectedSuperTreatmentPlanId = requestedPlan.id;
       } else {
-        selectedSuperTreatmentPlanId = 1;
+        selectedSuperTreatmentPlanId = superTreatmentPlans[0].id;
       }
     } catch (e) {
       print("Error fetching super treatments: $e");

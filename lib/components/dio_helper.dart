@@ -21,7 +21,7 @@ Future<dynamic> postData(String url, dynamic data) async {
   try {
     var request = await dio.post(url, data: data);
     return request.data;
-  } catch (e) {
+  } on DioException catch (e) {
        return e;
   }
 }

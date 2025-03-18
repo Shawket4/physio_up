@@ -18,3 +18,9 @@ class TherapistScheduleError extends TherapistScheduleState {
   
   TherapistScheduleError(this.message);
 }
+
+class TherapistScheduleErrorMarkAsComplete extends TherapistScheduleState {
+  final String message;
+  
+  TherapistScheduleErrorMarkAsComplete(this.message);
+}

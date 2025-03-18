@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -87,11 +88,17 @@ class TherapistScheduleCubit extends Cubit<TherapistScheduleState> {
   
   Future<void> markAsCompleted(int appointmentId) async {
     try {
-      await postData(
+     var response =  await postData(
         "$ServerIP/api/protected/MarkAppointmentAsCompleted",
         {"ID": appointmentId},
-      );
+      ); 
 
+      if (response is DioException) {
+         emit(TherapistScheduleErrorMarkAsComplete("Error marking appointment as completed make sure the appointment has a set package:"));
+         return;
+      }
+
+        print("object");
       for (var day in bookedSlots.entries) {
         for (var block in day.value) {
           if (block.appointment?.id == appointmentId) {
@@ -101,7 +108,7 @@ class TherapistScheduleCubit extends Cubit<TherapistScheduleState> {
           }
         }
       }
-    } catch (e) {
+    } on DioException catch (e) {
       emit(TherapistScheduleError("Error marking appointment as completed: $e"));
     }
   }
@@ -133,7 +140,7 @@ class TherapistScheduleCubit extends Cubit<TherapistScheduleState> {
         "$ServerIP/api/protected/RemoveAppointmentSendMessage",
         {"ID": timeBlockId},
       );
-
+    print("object");
       for (var entry in Map<DateTime, List<TimeBlock>>.from(bookedSlots).entries) {
         final date = entry.key;
         final blocks = entry.value;
