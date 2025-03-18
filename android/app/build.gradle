@@ -56,6 +56,14 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
     }
+    signingConfigs {
+    release {
+        keyAlias = detKeyAlias
+        keyPassword = detKeyPassword
+        storeFile = file(detStoreFile)
+        storePassword = detStorePassword
+    }
+}
 }
 
 flutter {
