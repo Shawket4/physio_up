@@ -8,10 +8,17 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
-val keystoreProperties = Properties()
-val keystorePropertiesFile = rootProject.file("key.properties")
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+def keyProperties = new Properties()
+def keyPropertiesFile = rootProject.file('key.properties')
+if (keyPropertiesFile.exists()) {
+    keyPropertiesFile.withReader('UTF-8') { reader ->
+        keyProperties.load(reader)
+    }
+}
+
+def detKeyAlias = keyProperties.getProperty('keyAlias')
+if (detKeyAlias == null) {
+    throw new GradleException("keyAlias not found in key.properties file.")
 }
 
 android {
@@ -47,7 +54,6 @@ android {
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
             signingConfig = signingConfigs.getByName("release")
-            signingConfig = signingConfigs.debug
         }
     }
 }
