@@ -44,19 +44,16 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  if (!kIsWeb && !Platform.isMacOS && !Platform.isWindows) {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  
-  // Set background message handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   
   // Initialize FlutterLocalNotificationsPlugin
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = 
     FlutterLocalNotificationsPlugin();
-    
-  const AndroidInitializationSettings initializationSettingsAndroid =
+     const AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('@mipmap/ic_launcher');
     
   final DarwinInitializationSettings initializationSettingsIOS =
@@ -75,6 +72,12 @@ void main() async {
     },
   );
 
+  }
+  
+  // Set background message handler
+  
+    
+ 
   initDio();
   runApp(const MainWidget());
 }
