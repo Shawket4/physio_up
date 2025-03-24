@@ -17,20 +17,25 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1  # Shallow clone for faster checkout
       
-      - uses: actions/setup-java@v2
+      - uses: actions/setup-java@v3
         with:
           java-version: 17
-          distribution: zulu
+          distribution: 'zulu'
+          cache: 'gradle'  # Cache dependencies to speed up builds
           
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.27.3
+          cache: true  # Enable Flutter cache
           
       - run: flutter config --enable-windows-desktop
-      - run: flutter create .
-      - run: flutter build windows
+      # Skip running 'flutter create .' if you already have a project structure
+      # Optimize Windows build with specific flags
+      - run: flutter build windows --release --verbose
       
       - name: Upload build artifacts
         uses: actions/upload-artifact@master
