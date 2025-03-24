@@ -56,11 +56,36 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           generate_release_notes: true
           
-      # Zip Windows build for release
+      # Get build directory structure for debugging
+      - name: List build directory
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          Get-ChildItem -Path "build" -Recurse | Select-Object FullName | Format-Table -AutoSize
+          
+      # Zip Windows build for release - using more reliable path
       - name: Zip Windows Build
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          Compress-Archive -Path "build\windows\runner\Release\*" -DestinationPath "windows-build.zip"
+          # Find the actual build output location
+          $buildPath = Get-ChildItem -Path "build\windows" -Recurse -Directory | Where-Object { $_.Name -eq "Release" } | Select-Object -ExpandProperty FullName -First 1
+          
+          if ($buildPath) {
+            Write-Host "Found Release directory at: $buildPath"
+            Compress-Archive -Path "$buildPath\*" -DestinationPath "windows-build.zip" -Force
+          } else {
+            # Fallback to common paths
+            if (Test-Path "build\windows\x64\runner\Release") {
+              Write-Host "Using fallback path: build\windows\x64\runner\Release"
+              Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "windows-build.zip" -Force
+            } elseif (Test-Path "build\windows\runner\Release") {
+              Write-Host "Using fallback path: build\windows\runner\Release"
+              Compress-Archive -Path "build\windows\runner\Release\*" -DestinationPath "windows-build.zip" -Force
+            } else {
+              # Last resort - just zip whatever we can find
+              Write-Host "Using last resort path"
+              Compress-Archive -Path "build\windows" -DestinationPath "windows-build.zip" -Force
+            }
+          }
       
       # Upload Windows zip to the release
       - name: Upload Windows Build to Release
