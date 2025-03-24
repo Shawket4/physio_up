@@ -61,7 +61,7 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           # Use the specific path provided
-          $buildPath = "build\windows\x64\flutter\x64\Release"
+          $buildPath = "\build\windows\x64\runner\Release\"
           
           # Check if path exists
           if (Test-Path $buildPath) {
